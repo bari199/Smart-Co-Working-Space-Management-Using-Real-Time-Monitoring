@@ -7,6 +7,7 @@ import connectDB from "./config/db.js";
 import cloudinary from "./config/cloudinary.js";
 
 import authRoutes from "./routes/authRoutes.js";
+import spaceRoutes from "./routes/spaceRoutes.js";
 
 const app = express();
 
@@ -22,30 +23,6 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/api/test-cloudinary", async (req, res) => {
-  try {
-    const result = await cloudinary.api.resources({
-      resource_type: "image",
-      type: "upload",
-      max_results: 1,
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Cloudinary API is working",
-      resources: result.resources,
-    });
-  } catch (error) {
-    console.error("CLOUDINARY RESOURCE ERROR:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-      error,
-    });
-  }
-});
-
 app.get("/", (req, res) => {
   res.json({
     message: "Welcome to Smart Co-Working Space API",
@@ -60,6 +37,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/spaces", spaceRoutes);
 
 app.use((error, req, res, next) => {
   console.error("GLOBAL ERROR:", error);
