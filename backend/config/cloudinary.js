@@ -6,4 +6,13 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+cloudinary.api
+  .ping()
+  .then((result) => {
+    console.log("Cloudinary Ping:", result);
+  })
+  .catch((error) => {
+    console.error("Cloudinary Ping Error:", error);
+  });
+
 export default cloudinary;
