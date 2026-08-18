@@ -1,0 +1,2 @@
+# Smart-Co-Working-Space-Management-Using-Real-Time-Monitoring
+The Co-Working Space Web Platform is a centralized, user-friendly website designed to help individuals, startups, and enterprises discover, evaluate, and book co-working spaces based on their specific requirements. The platform enables users to filter spaces by number of persons, area size, amenities, budget, and location, and provides a smart ftre

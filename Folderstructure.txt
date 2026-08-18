@@ -1,0 +1,92 @@
+smart-coworking-space/
+│
+├── backend/
+│   ├── config/
+│   │   └── db.js
+│   │
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── userController.js
+│   │   ├── spaceController.js
+│   │   ├── bookingController.js
+│   │   ├── inquiryController.js
+│   │   └── adminController.js
+│   │
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Space.js
+│   │   ├── Booking.js
+│   │   ├── Inquiry.js
+│   │   └── Notification.js
+│   │
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── userRoutes.js
+│   │   ├── spaceRoutes.js
+│   │   ├── bookingRoutes.js
+│   │   ├── inquiryRoutes.js
+│   │   └── adminRoutes.js
+│   │
+│   ├── middleware/
+│   │   ├── authMiddleware.js
+│   │   └── roleMiddleware.js
+│   │
+│   ├── utils/
+│   │   └── generateToken.js
+│   │
+│   ├── .env
+│   ├── .env.example
+│   ├── server.js
+│   └── package.json
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   ├── ProtectedRoute.jsx
+│   │   │   ├── SpaceCard.jsx
+│   │   │   ├── SearchFilter.jsx
+
+│   │   │   └── Loading.jsx
+│   │   │
+│   │   ├── pages/
+│   │   │   ├── Home.jsx
+│   │   │   ├── Login.jsx
+│   │   │   ├── Register.jsx
+│   │   │   ├── Spaces.jsx
+│   │   │   ├── SpaceDetails.jsx
+│   │   │   ├── UserDashboard.jsx
+│   │   │   ├── OwnerDashboard.jsx
+│   │   │   ├── AdminDashboard.jsx
+│   │   │   ├── MyBookings.jsx
+│   │   │   └── NotFound.jsx
+│   │   │
+│   │   ├── services/
+│   │   │   ├── authService.js
+│   │   │   ├── spaceService.js
+│   │   │   ├── bookingService.js
+│   │   │   └── adminService.js
+│   │   │
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx
+│   │   │
+│   │   ├── layouts/
+│   │   │   └── DashboardLayout.jsx
+│   │   │
+│   │   ├── lib/
+│   │   │   └── utils.js
+│   │   │
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   │
+│   ├── .env
+│   ├── .env.example
+│   ├── components.json
+│   ├── vite.config.js
+│   ├── package.json
+│   └── index.html
+│
+├── README.md
+└── .gitignore
