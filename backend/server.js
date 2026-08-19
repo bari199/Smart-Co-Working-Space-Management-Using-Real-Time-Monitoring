@@ -9,6 +9,8 @@ import cloudinary from "./config/cloudinary.js";
 import authRoutes from "./routes/authRoutes.js";
 import spaceRoutes from "./routes/spaceRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import inquiryRoutes from "./routes/inquiryRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
 
@@ -40,6 +42,8 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/spaces", spaceRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/inquiries", inquiryRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.use((error, req, res, next) => {
   console.error("GLOBAL ERROR:", error);
