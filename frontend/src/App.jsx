@@ -10,6 +10,11 @@ import Register from "./pages/Register";
 import Spaces from "./pages/spaces/spaces";
 import SpaceDetails from "./pages/spaces/SpaceDetails";
 
+import UserDashboard from "./pages/user/UserDashboard";
+import MyBookings from "./pages/user/MyBookings";
+import MyInquiries from "./pages/user/MyInquiries";
+import Notifications from "./pages/user/Notifications";
+
 const App = () => {
   return (
     <BrowserRouter>
@@ -25,6 +30,14 @@ const App = () => {
 
           <Route element={<ProtectedRoute />}>
             {/* User routes */}
+
+            <Route path="/dashboard" element={<UserDashboard />} />
+            <Route path="/dashboard/bookings" element={<MyBookings />} />
+            <Route path="/dashboard/inquiries" element={<MyInquiries />} />
+            <Route
+              path="/dashboard/notifications"
+              element={<Notifications />}
+            />
 
             {/* Owner routes */}
           </Route>
