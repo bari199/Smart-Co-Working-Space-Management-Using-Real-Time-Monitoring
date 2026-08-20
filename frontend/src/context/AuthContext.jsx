@@ -1,38 +1,18 @@
-import { createContext, useContext, useEffect, useState } from "react";
-
-import api from "@/services/api";
+import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
+  const login = (data) => {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
 
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    }
-
-    setLoading(false);
-  }, []);
-
-  const login = async (email, password) => {
-    const response = await api.post("/auth/login", {
-      email,
-      password,
-    });
-
-    const { token, user } = response.data;
-
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-
-    setUser(user);
-
-    return response.data;
+    setUser(data.user);
   };
 
   const logout = () => {
@@ -46,7 +26,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        loading,
+        isAuthenticated: !!user,
         login,
         logout,
       }}
