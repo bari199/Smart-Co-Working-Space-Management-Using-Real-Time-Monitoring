@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import SpaceGrid from "../../components/space/SpaceGrid";
 import Loading from "../../components/common/Loading";
-import { getSpaces } from "../../services/spaceService";
+import { getSpaces } from "../services/spaceService";
 
 const Spaces = () => {
   const [spaces, setSpaces] = useState([]);

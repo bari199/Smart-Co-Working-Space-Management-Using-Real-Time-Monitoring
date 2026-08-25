@@ -1,111 +1,342 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* Smart Co-Working Space Palette */
+  --primary: #042630;
+  --primary-dark: #041421;
+  --secondary: #4a7272;
+  --accent: #86b9b2;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --background: #f5f8f8;
+  --surface: #ffffff;
+  --surface-muted: #d0d6d6;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
+  --text: #041421;
+  --muted: #5f7074;
+
+  --border: #d0d6d6;
+
+  --navy: #042630;
+  --teal: #4a7272;
+  --aqua: #86b9b2;
+
+  /* shadcn semantic tokens */
+  --foreground: #041421;
+
+  --card: #ffffff;
+  --card-foreground: #041421;
+
+  --popover: #ffffff;
+  --popover-foreground: #041421;
+
+  --primary-foreground: #ffffff;
+
+  --secondary-foreground: #ffffff;
+
+  --muted-foreground: #5f7074;
+
+  --accent-foreground: #041421;
+
+  --destructive: #dc2626;
+
+  --input: #d0d6d6;
+
+  --ring: #4a7272;
+
+  /* Charts */
+  --chart-1: #042630;
+  --chart-2: #4a7272;
+  --chart-3: #86b9b2;
+  --chart-4: #688f8d;
+  --chart-5: #d0d6d6;
+
+  --radius: 0.75rem;
+
+  /* Sidebar */
+  --sidebar: #042630;
+  --sidebar-foreground: #ffffff;
+
+  --sidebar-primary: #86b9b2;
+  --sidebar-primary-foreground: #041421;
+
+  --sidebar-accent: #4a7272;
+  --sidebar-accent-foreground: #ffffff;
+
+  --sidebar-border: #31575b;
+  --sidebar-ring: #86b9b2;
+}
+
+/* =========================================================
+   Tailwind Theme Tokens
+   ========================================================= */
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: "Geist Variable", sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* =========================================================
+   Dark Mode
+   ========================================================= */
+
+.dark {
+  --background: #041421;
+  --foreground: #f5f8f8;
+
+  --card: #042630;
+  --card-foreground: #f5f8f8;
+
+  --popover: #042630;
+  --popover-foreground: #f5f8f8;
+
+  --primary: #86b9b2;
+  --primary-foreground: #041421;
+
+  --secondary: #4a7272;
+  --secondary-foreground: #ffffff;
+
+  --muted: #183b42;
+  --muted-foreground: #b7c5c7;
+
+  --accent: #86b9b2;
+  --accent-foreground: #041421;
+
+  --destructive: #ef4444;
+
+  --border: #31575b;
+  --input: #31575b;
+  --ring: #86b9b2;
+
+  --chart-1: #86b9b2;
+  --chart-2: #4a7272;
+  --chart-3: #688f8d;
+  --chart-4: #d0d6d6;
+  --chart-5: #042630;
+
+  --sidebar: #041421;
+  --sidebar-foreground: #ffffff;
+
+  --sidebar-primary: #86b9b2;
+  --sidebar-primary-foreground: #041421;
+
+  --sidebar-accent: #183b42;
+  --sidebar-accent-foreground: #ffffff;
+
+  --sidebar-border: #31575b;
+  --sidebar-ring: #86b9b2;
+}
+
+/* =========================================================
+   Base
+   ========================================================= */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    min-width: 320px;
+    font-family:
+      "Geist Variable",
+      Inter,
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--primary);
+  }
+}
+
+/* =========================================================
+   Reusable Layout Classes
+   ========================================================= */
+
+.container-width {
+  width: min(1180px, calc(100% - 32px));
+  margin-inline: auto;
+}
+
+.section-padding {
+  padding-block: 72px;
+}
+
+@media (max-width: 640px) {
+  .section-padding {
+    padding-block: 52px;
+  }
+}
+
+.section-label {
+  color: var(--teal);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.section-title {
   color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+}
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
+.section-description {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   Animations
+   ========================================================= */
+
+@keyframes notificationBellBlink {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.45;
+    transform: scale(1.12);
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+.notification-bell-blink {
+  animation: notificationBellBlink 1s ease-in-out infinite;
 }
 
-body {
-  margin: 0;
+/* =========================================================
+   Utility Helpers
+   ========================================================= */
+
+.bg-brand {
+  background-color: var(--primary);
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+.bg-brand-dark {
+  background-color: var(--primary-dark);
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+.bg-teal {
+  background-color: var(--teal);
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+.bg-aqua {
+  background-color: var(--aqua);
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+.bg-surface {
+  background-color: var(--surface);
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.bg-surface-muted {
+  background-color: var(--surface-muted);
+}
+
+.text-brand {
+  color: var(--primary);
+}
+
+.text-teal {
+  color: var(--teal);
+}
+
+.text-aqua {
+  color: var(--aqua);
+}
+
+.text-muted-custom {
+  color: var(--muted);
 }

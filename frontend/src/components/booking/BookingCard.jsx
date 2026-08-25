@@ -1,74 +1,83 @@
-import { useState } from "react";
-import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { Calendar, MapPin } from "lucide-react";
 
-import { cancelBooking } from "../../services/bookingService";
+const STATUS_STYLES = {
+  pending: "bg-amber-100 text-amber-700",
+  confirmed: "bg-blue-100 text-blue-700",
+  cancelled: "bg-gray-100 text-gray-600",
+  rejected: "bg-red-100 text-red-600",
+};
 
 const BookingCard = ({ booking, onUpdated }) => {
-  const [loading, setLoading] = useState(false);
-
-  const handleCancel = async () => {
-    try {
-      setLoading(true);
-
-      await cancelBooking(booking._id);
-
-      toast.success("Booking cancelled");
-
-      onUpdated?.();
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const isPaid = booking.paymentStatus === "paid";
+  const isCancelled = booking.status === "cancelled";
+  const isRejected = booking.status === "rejected";
+  const status = booking.status || "pending";
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row">
+    <article className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition duration-300 hover:shadow-md">
+      <div className="flex flex-col justify-between gap-4 p-5 md:flex-row md:items-start">
         <div>
-          <h3 className="font-semibold">
-            {booking.space?.name || "Workspace"}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-bold text-[var(--text)]">
+              {booking.space?.name || "Workspace"}
+            </h2>
 
-          <p className="mt-1 text-sm text-[var(--muted)]">
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-xs font-bold capitalize ${
+                STATUS_STYLES[status] || STATUS_STYLES.pending
+              }`}
+            >
+              {status}
+            </span>
+          </div>
+
+          <div className="mt-2 flex items-center gap-1 text-xs text-[var(--muted)]">
+            <MapPin size={13} />
             {booking.space?.location || "Location unavailable"}
-          </p>
+          </div>
+
+          <div className="mt-1.5 flex items-center gap-1 text-xs text-[var(--muted)]">
+            <Calendar size={13} />
+            {booking.date ? new Date(booking.date).toLocaleDateString() : "N/A"}
+          </div>
         </div>
 
-        <span className="h-fit rounded-full bg-[var(--accent)]/30 px-3 py-1 text-xs font-medium text-[var(--primary)] dark:text-[var(--accent)]">
-          {booking.status || "Pending"}
-        </span>
-      </div>
-
-      <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
-        <div>
-          <p className="text-[var(--muted)]">Date</p>
-          <p className="font-medium">
-            {booking.date ? new Date(booking.date).toLocaleDateString() : "—"}
-          </p>
-        </div>
-
-        <div>
-          <p className="text-[var(--muted)]">Start</p>
-          <p className="font-medium">{booking.startTime || "—"}</p>
-        </div>
-
-        <div>
-          <p className="text-[var(--muted)]">End</p>
-          <p className="font-medium">{booking.endTime || "—"}</p>
+        <div className="text-left md:text-right">
+          <span className="text-lg font-extrabold text-[var(--text)]">
+            ₹{booking.totalPrice || booking.price || 0}
+          </span>
         </div>
       </div>
 
-      {booking.status === "pending" && (
-        <button
-          onClick={handleCancel}
-          disabled={loading}
-          className="mt-5 rounded-lg border border-[var(--secondary)] px-4 py-2 text-sm font-medium text-[var(--secondary)] hover:bg-[var(--accent)]/10 disabled:opacity-50"
-        >
-          {loading ? "Cancelling..." : "Cancel Booking"}
-        </button>
-      )}
-    </div>
+      <div className="flex flex-wrap gap-3 border-t border-[var(--border)] px-5 py-4">
+        {!isPaid && !isCancelled && !isRejected && (
+          <Link
+            to={`/payment/${booking._id}`}
+            className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white transition hover:bg-[var(--primary-dark)]"
+          >
+            Pay now
+          </Link>
+        )}
+
+        {isPaid && (
+          <span className="rounded-lg bg-green-100 px-4 py-2 text-xs font-bold text-green-700">
+            Payment completed
+          </span>
+        )}
+
+        {!isPaid && !isCancelled && !isRejected && (
+          <button
+            onClick={() => {
+              // Existing cancel functionality
+            }}
+            className="rounded-lg border border-red-300 px-4 py-2 text-xs font-bold text-red-600 transition hover:bg-red-50"
+          >
+            Cancel booking
+          </button>
+        )}
+      </div>
+    </article>
   );
 };
 

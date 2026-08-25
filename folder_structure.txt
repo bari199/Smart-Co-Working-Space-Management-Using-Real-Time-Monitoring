@@ -1,0 +1,72 @@
+                     WEBSITE
+                        │
+                        ↓
+                      HOME
+                        │
+             ┌──────────┴──────────┐
+             ↓                     ↓
+          REGISTER                LOGIN
+             │                     │
+             ↓                     ↓
+       Select Role             Authenticate
+          /     \                  │
+         /       \                 ↓
+      USER       OWNER         Role Redirect
+       │           │
+       ↓           ↓
+  /dashboard     /owner
+       │           │
+       │           ├───────────────┐
+       │           ↓               ↓
+       │      /owner/spaces   /owner/bookings
+       │           │               │
+       │           ↓               │
+       │       Create Space        │
+       │           │               │
+       │           ↓               │
+       │         SPACES ◄──────────┘
+       │           │
+       ↓           ↓
+  /dashboard   /spaces
+       │           │
+       │           ↓
+       │     Space Details
+       │           │
+       │           ↓
+       │     Book This Space
+       │           │
+       │           ↓
+       │      Booking Form
+       │           │
+       │           ↓
+       │    POST /bookings
+       │           │
+       │           ↓
+       │      Booking Created
+       │           │
+       │           ↓
+       │        Payment
+       │           │
+       │           ↓
+       │       Razorpay
+       │           │
+       │           ↓
+       │      Verify Payment
+       │           │
+       │           ↓
+       │     My Bookings
+       │           │
+       │           ↓
+       │     Waiting Owner
+       │           │
+       │           ↓
+       │      OWNER APPROVE
+       │           │
+       │           ↓
+       │     CONFIRMED
+       │           │
+       │           ↓
+       │      Notification
+       │           │
+       │           ↓
+       │          USER

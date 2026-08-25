@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 
-import { getSpaceById } from "../../services/spaceService";
+import { getSpaceById } from "../services/spaceService";
 import Loading from "../../components/common/Loading";
+import { useAuth } from "../../context/authContext";
 
 const SpaceDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+
+  const { user, isAuthenticated } = useAuth();
 
   const [space, setSpace] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,9 +22,9 @@ const SpaceDetails = () => {
 
         const data = await getSpaceById(id);
 
-        setSpace(data.space || data.data || data);
+        setSpace(data?.space || data?.data || data);
       } catch (error) {
-        setError(error.message);
+        setError(error.message || "Failed to load workspace");
       } finally {
         setLoading(false);
       }
@@ -58,9 +62,28 @@ const SpaceDetails = () => {
     );
   }
 
+  /*
+   * Check whether logged-in user owns this workspace.
+   *
+   * space.owner may be:
+   * 1. ObjectId string
+   * 2. populated object { _id, name, email }
+   */
+  const ownerId =
+    typeof space.owner === "object" ? space.owner?._id : space.owner;
+
+  const currentUserId = user?._id || user?.id;
+
+  const isOwner =
+    isAuthenticated &&
+    currentUserId &&
+    ownerId &&
+    String(currentUserId) === String(ownerId);
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-10">
       <div className="grid gap-8 lg:grid-cols-2">
+        {/* IMAGE */}
         <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
           {space.image ? (
             <img
@@ -75,6 +98,7 @@ const SpaceDetails = () => {
           )}
         </div>
 
+        {/* DETAILS */}
         <div>
           <span className="rounded-full bg-[var(--accent)]/30 px-3 py-1 text-sm font-medium text-[var(--primary)] dark:text-[var(--accent)]">
             {space.workspaceType || "Workspace"}
@@ -92,7 +116,7 @@ const SpaceDetails = () => {
             </p>
 
             <p>
-              <span className="font-semibold">Area:</span> {space.area}
+              <span className="font-semibold">Area:</span> {space.area} sq ft
             </p>
 
             <p>
@@ -102,8 +126,14 @@ const SpaceDetails = () => {
             <p>
               <span className="font-semibold">Price:</span> ₹{space.price}
             </p>
+
+            <p>
+              <span className="font-semibold">Availability:</span>{" "}
+              {space.availability}
+            </p>
           </div>
 
+          {/* AMENITIES */}
           {space.amenities?.length > 0 && (
             <div className="mt-6">
               <h2 className="text-lg font-semibold">Amenities</h2>
@@ -121,12 +151,63 @@ const SpaceDetails = () => {
             </div>
           )}
 
-          <Link
-            to="/login"
-            className="mt-8 inline-block rounded-lg bg-[var(--primary)] px-6 py-3 font-medium text-white transition hover:opacity-90"
-          >
-            Book This Space
-          </Link>
+          {/* BOOKING ACTION */}
+          <div className="mt-8">
+            {!isAuthenticated ? (
+              <button
+                onClick={() =>
+                  navigate("/login", {
+                    state: {
+                      from: `/spaces/${space._id}`,
+                    },
+                  })
+                }
+                className="rounded-lg bg-[var(--primary)] px-5 py-3 font-medium text-white"
+              >
+                Login to Book
+              </button>
+            ) : isOwner ? (
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--accent)]/10 p-4">
+                <p className="font-medium text-[var(--text)]">
+                  This is your workspace
+                </p>
+
+                <p className="mt-1 text-sm text-[var(--muted)]">
+                  You cannot book your own workspace.
+                </p>
+
+                <button
+                  onClick={() => navigate("/owner/spaces")}
+                  className="mt-3 rounded-lg border border-[var(--secondary)] px-4 py-2 text-sm font-medium text-[var(--secondary)]"
+                >
+                  Manage My Spaces
+                </button>
+              </div>
+            ) : space.availability !== "available" ? (
+              <button
+                disabled
+                className="cursor-not-allowed rounded-lg bg-gray-400 px-5 py-3 font-medium text-white"
+              >
+                Space Unavailable
+              </button>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button
+                  onClick={() => navigate(`/spaces/${space._id}/book`)}
+                  className="rounded-lg bg-[var(--primary)] px-5 py-3 font-medium text-white"
+                >
+                  Book Now
+                </button>
+
+                <button
+                  onClick={() => navigate(`/spaces/${space._id}/inquiry`)}
+                  className="rounded-lg border border-[var(--secondary)] px-5 py-3 font-medium text-[var(--secondary)]"
+                >
+                  Make an Inquiry
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>

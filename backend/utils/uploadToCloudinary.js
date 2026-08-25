@@ -9,10 +9,10 @@ const uploadToCloudinary = (buffer, folder) => {
       },
       (error, result) => {
         if (error) {
-          return reject(error);
+          reject(error);
+        } else {
+          resolve(result);
         }
-
-        resolve(result);
       },
     );
 

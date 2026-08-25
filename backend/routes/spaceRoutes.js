@@ -16,19 +16,14 @@ import upload from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
-// Get all workspaces
+// Public Routes
 router.get("/", getAllSpaces);
 
-// Search workspaces
 router.get("/search", searchSpaces);
 
-// Get owner's workspaces
-router.get("/owner/my-spaces", protect, authorizeRoles("owner"), getMySpaces);
+// Owner Routes
+router.get("/owner", protect, authorizeRoles("owner"), getMySpaces);
 
-// Get single workspace
-router.get("/:id", getSpaceById);
-
-// Create workspace
 router.post(
   "/",
   protect,
@@ -37,7 +32,6 @@ router.post(
   createSpace,
 );
 
-// Update workspace
 router.put(
   "/:id",
   protect,
@@ -46,7 +40,9 @@ router.put(
   updateSpace,
 );
 
-// Delete workspace
 router.delete("/:id", protect, authorizeRoles("owner"), deleteSpace);
+
+// Single workspace
+router.get("/:id", getSpaceById);
 
 export default router;

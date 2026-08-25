@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-
 const notificationSchema = new mongoose.Schema(
   {
     user: {
@@ -22,11 +21,23 @@ const notificationSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["booking", "inquiry", "system"],
+      enum: ["booking", "inquiry", "payment", "system"],
       default: "system",
     },
 
-    isRead: {
+    booking: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Booking",
+      default: null,
+    },
+
+    inquiry: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Inquiry",
+      default: null,
+    },
+
+    read: {
       type: Boolean,
       default: false,
     },
@@ -35,6 +46,11 @@ const notificationSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+notificationSchema.index({
+  user: 1,
+  createdAt: -1,
+});
 
 const Notification = mongoose.model("Notification", notificationSchema);
 

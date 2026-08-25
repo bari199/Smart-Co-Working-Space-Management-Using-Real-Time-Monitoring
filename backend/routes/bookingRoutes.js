@@ -4,9 +4,10 @@ import {
   createBooking,
   getMyBookings,
   getOwnerBookings,
-  approveBooking,
-  rejectBooking,
+  getBookingById,
+  updateBookingStatus,
   cancelBooking,
+  checkAvailability,
 } from "../controllers/bookingController.js";
 
 import protect from "../middleware/authMiddleware.js";
@@ -14,23 +15,52 @@ import authorizeRoles from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
-// User
-router.post("/", protect, authorizeRoles("user"), createBooking);
+// All booking routes require authentication
+router.use(protect);
 
-router.get("/my-bookings", protect, authorizeRoles("user"), getMyBookings);
+/*
+|--------------------------------------------------------------------------
+| Availability
+|--------------------------------------------------------------------------
+*/
 
-router.put("/:id/cancel", protect, authorizeRoles("user"), cancelBooking);
+// Logged-in users can check availability
+router.get("/availability", checkAvailability);
 
-// Owner
-router.get(
-  "/owner/bookings",
-  protect,
-  authorizeRoles("owner"),
-  getOwnerBookings,
-);
+/*
+|--------------------------------------------------------------------------
+| User / Customer
+|--------------------------------------------------------------------------
+*/
 
-router.put("/:id/approve", protect, authorizeRoles("owner"), approveBooking);
+// Create booking
+router.post("/", authorizeRoles("user"), createBooking);
 
-router.put("/:id/reject", protect, authorizeRoles("owner"), rejectBooking);
+// Get logged-in user's bookings
+router.get("/my-bookings", authorizeRoles("user"), getMyBookings);
+
+/*
+|--------------------------------------------------------------------------
+| Owner
+|--------------------------------------------------------------------------
+*/
+
+// Get bookings received for owner's spaces
+router.get("/owner", authorizeRoles("owner"), getOwnerBookings);
+
+// Update booking status
+router.put("/:id/status", authorizeRoles("owner"), updateBookingStatus);
+
+/*
+|--------------------------------------------------------------------------
+| Common
+|--------------------------------------------------------------------------
+*/
+
+// Get single booking
+router.get("/:id", getBookingById);
+
+// Cancel booking
+router.put("/:id/cancel", cancelBooking);
 
 export default router;

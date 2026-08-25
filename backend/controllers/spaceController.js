@@ -1,15 +1,14 @@
 import mongoose from "mongoose";
-
 import Space from "../models/Space.js";
 import uploadToCloudinary from "../utils/uploadToCloudinary.js";
 
-// Create Workspace
-export const createSpace = async (req, res) => {
+const createSpace = async (req, res) => {
   try {
-    console.log("========== SPACE CREATE ==========");
+    console.log("========== CREATE SPACE ==========");
     console.log("BODY:", req.body);
     console.log("FILE:", req.file);
-    console.log("==================================");
+    console.log("BUFFER SIZE:", req.file?.buffer?.length);
+
     const {
       name,
       description,
@@ -19,55 +18,66 @@ export const createSpace = async (req, res) => {
       workspaceType,
       price,
       amenities,
+      availability,
     } = req.body;
 
     if (
-      !name?.trim() ||
-      !description?.trim() ||
-      !location?.trim() ||
+      !name ||
+      !description ||
+      !location ||
       !area ||
       !capacity ||
       !workspaceType ||
-      !price
+      price === undefined
     ) {
       return res.status(400).json({
         success: false,
-        message: "Please provide all required workspace details",
+        message: "All required fields must be provided",
       });
     }
 
-    // Workspace image is required
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "Workspace image is required",
-      });
+    let imageUrl = "";
+
+    if (req.file) {
+      console.log("Uploading image to Cloudinary...");
+
+      const result = await uploadToCloudinary(
+        req.file.buffer,
+        "smart-coworking/spaces",
+      );
+
+      console.log("Cloudinary result:", result);
+
+      imageUrl = result.secure_url;
+
+      console.log("IMAGE URL:", imageUrl);
     }
-
-    // Upload workspace image to Cloudinary
-    const uploadResult = await uploadToCloudinary(
-      req.file.buffer,
-      "smart-coworking/spaces",
-    );
-
-    const image = uploadResult.secure_url;
 
     const space = await Space.create({
       name: name.trim(),
       description: description.trim(),
       owner: req.user._id,
       location: location.trim(),
-      area,
-      capacity,
+      area: Number(area),
+      capacity: Number(capacity),
       workspaceType,
-      price,
+      price: Number(price),
+
       amenities: Array.isArray(amenities)
         ? amenities
         : amenities
-          ? amenities.split(",").map((item) => item.trim())
+          ? String(amenities)
+              .split(",")
+              .map((item) => item.trim())
+              .filter(Boolean)
           : [],
-      image,
+
+      image: imageUrl,
+
+      availability: availability || "available",
     });
+
+    console.log("SAVED SPACE:", space);
 
     return res.status(201).json({
       success: true,
@@ -75,7 +85,7 @@ export const createSpace = async (req, res) => {
       space,
     });
   } catch (error) {
-    console.error("CREATE SPACE ERROR:", error);
+    console.error("Create space error:", error);
 
     return res.status(500).json({
       success: false,
@@ -84,11 +94,13 @@ export const createSpace = async (req, res) => {
     });
   }
 };
-// Get All Workspaces
-export const getAllSpaces = async (req, res) => {
+
+const getAllSpaces = async (req, res) => {
   try {
-    const spaces = await Space.find()
-      .populate("owner", "name email profilePicture")
+    const spaces = await Space.find({
+      availability: "available",
+    })
+      .populate("owner", "name email phone")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -97,7 +109,7 @@ export const getAllSpaces = async (req, res) => {
       spaces,
     });
   } catch (error) {
-    console.error("GET ALL SPACES ERROR:", error);
+    console.error("Get all spaces error:", error);
 
     return res.status(500).json({
       success: false,
@@ -107,19 +119,20 @@ export const getAllSpaces = async (req, res) => {
   }
 };
 
-// Get Single Workspace
-export const getSpaceById = async (req, res) => {
+const getSpaceById = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid workspace ID",
       });
     }
 
-    const space = await Space.findById(req.params.id).populate(
+    const space = await Space.findById(id).populate(
       "owner",
-      "name email phone profilePicture",
+      "name email phone location",
     );
 
     if (!space) {
@@ -134,7 +147,7 @@ export const getSpaceById = async (req, res) => {
       space,
     });
   } catch (error) {
-    console.error("GET SPACE ERROR:", error);
+    console.error("Get space by ID error:", error);
 
     return res.status(500).json({
       success: false,
@@ -144,9 +157,13 @@ export const getSpaceById = async (req, res) => {
   }
 };
 
-// Get Owner Workspaces
-export const getMySpaces = async (req, res) => {
+const getMySpaces = async (req, res) => {
   try {
+    console.log("GET MY SPACES");
+    console.log("USER:", req.user);
+    console.log("USER ID:", req.user?._id);
+    console.log("USER ROLE:", req.user?.role);
+
     const spaces = await Space.find({
       owner: req.user._id,
     }).sort({ createdAt: -1 });
@@ -157,7 +174,7 @@ export const getMySpaces = async (req, res) => {
       spaces,
     });
   } catch (error) {
-    console.error("GET MY SPACES ERROR:", error);
+    console.error("Get owner spaces error:", error);
 
     return res.status(500).json({
       success: false,
@@ -166,18 +183,18 @@ export const getMySpaces = async (req, res) => {
     });
   }
 };
-
-// Update Workspace
-export const updateSpace = async (req, res) => {
+const updateSpace = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid workspace ID",
       });
     }
 
-    const space = await Space.findById(req.params.id);
+    const space = await Space.findById(id);
 
     if (!space) {
       return res.status(404).json({
@@ -189,7 +206,7 @@ export const updateSpace = async (req, res) => {
     if (space.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message: "You can only update your own workspace",
+        message: "You are not allowed to update this workspace",
       });
     }
 
@@ -205,31 +222,49 @@ export const updateSpace = async (req, res) => {
       availability,
     } = req.body;
 
-    space.name = name?.trim() || space.name;
-    space.description = description?.trim() || space.description;
-    space.location = location?.trim() || space.location;
-    space.area = area ?? space.area;
-    space.capacity = capacity ?? space.capacity;
-    space.workspaceType = workspaceType || space.workspaceType;
-    space.price = price ?? space.price;
-    space.availability = availability || space.availability;
+    if (name !== undefined) {
+      space.name = name.trim();
+    }
+
+    if (description !== undefined) {
+      space.description = description.trim();
+    }
+
+    if (location !== undefined) {
+      space.location = location.trim();
+    }
+
+    if (area !== undefined) {
+      space.area = Number(area);
+    }
+
+    if (capacity !== undefined) {
+      space.capacity = Number(capacity);
+    }
+
+    if (workspaceType !== undefined) {
+      space.workspaceType = workspaceType;
+    }
+
+    if (price !== undefined) {
+      space.price = Number(price);
+    }
 
     if (amenities !== undefined) {
       space.amenities = Array.isArray(amenities)
         ? amenities
-        : amenities
-          ? amenities.split(",").map((item) => item.trim())
-          : [];
+        : String(amenities)
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean);
     }
 
-    // Upload new workspace image
-    if (req.file) {
-      const uploadResult = await uploadToCloudinary(
-        req.file.buffer,
-        "smart-coworking/spaces",
-      );
+    if (availability !== undefined) {
+      space.availability = availability;
+    }
 
-      space.image = uploadResult.secure_url;
+    if (req.file?.path) {
+      space.image = req.file.path;
     }
 
     await space.save();
@@ -240,7 +275,7 @@ export const updateSpace = async (req, res) => {
       space,
     });
   } catch (error) {
-    console.error("UPDATE SPACE ERROR:", error);
+    console.error("Update space error:", error);
 
     return res.status(500).json({
       success: false,
@@ -250,17 +285,18 @@ export const updateSpace = async (req, res) => {
   }
 };
 
-// Delete Workspace
-export const deleteSpace = async (req, res) => {
+const deleteSpace = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid workspace ID",
       });
     }
 
-    const space = await Space.findById(req.params.id);
+    const space = await Space.findById(id);
 
     if (!space) {
       return res.status(404).json({
@@ -272,18 +308,18 @@ export const deleteSpace = async (req, res) => {
     if (space.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message: "You can only delete your own workspace",
+        message: "You are not allowed to delete this workspace",
       });
     }
 
-    await space.deleteOne();
+    await Space.findByIdAndDelete(id);
 
     return res.status(200).json({
       success: true,
       message: "Workspace deleted successfully",
     });
   } catch (error) {
-    console.error("DELETE SPACE ERROR:", error);
+    console.error("Delete space error:", error);
 
     return res.status(500).json({
       success: false,
@@ -293,108 +329,104 @@ export const deleteSpace = async (req, res) => {
   }
 };
 
-// Search and Smart Match Workspaces
-export const searchSpaces = async (req, res) => {
+const searchSpaces = async (req, res) => {
   try {
-    const { persons, area, budget, location, amenities, workspaceType } =
-      req.query;
+    const {
+      search,
+      location,
+      workspaceType,
+      minPrice,
+      maxPrice,
+      capacity,
+      availability,
+    } = req.query;
 
-    const spaces = await Space.find({
-      availability: "available",
-    })
-      .populate("owner", "name email profilePicture")
+    const filter = {};
+
+    if (availability) {
+      filter.availability = availability;
+    } else {
+      filter.availability = "available";
+    }
+
+    if (search) {
+      filter.$or = [
+        {
+          name: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+        {
+          description: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+        {
+          location: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+      ];
+    }
+
+    if (location) {
+      filter.location = {
+        $regex: location,
+        $options: "i",
+      };
+    }
+
+    if (workspaceType) {
+      filter.workspaceType = workspaceType;
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      filter.price = {};
+
+      if (minPrice !== undefined) {
+        filter.price.$gte = Number(minPrice);
+      }
+
+      if (maxPrice !== undefined) {
+        filter.price.$lte = Number(maxPrice);
+      }
+    }
+
+    if (capacity !== undefined) {
+      filter.capacity = {
+        $gte: Number(capacity),
+      };
+    }
+
+    const spaces = await Space.find(filter)
+      .populate("owner", "name email phone")
       .sort({ createdAt: -1 });
 
-    const requestedPersons = persons ? Number(persons) : null;
-    const requestedArea = area ? Number(area) : null;
-    const requestedBudget = budget ? Number(budget) : null;
-
-    const requestedAmenities = amenities
-      ? amenities
-          .split(",")
-          .map((item) => item.trim().toLowerCase())
-          .filter(Boolean)
-      : [];
-
-    const results = spaces
-      .map((space) => {
-        let score = 0;
-
-        // Capacity - 25%
-        if (requestedPersons === null || space.capacity >= requestedPersons) {
-          score += 25;
-        }
-
-        // Area - 20%
-        if (requestedArea === null || space.area >= requestedArea) {
-          score += 20;
-        }
-
-        // Budget - 20%
-        if (requestedBudget === null || space.price <= requestedBudget) {
-          score += 20;
-        }
-
-        // Location - 20%
-        if (
-          !location ||
-          space.location.toLowerCase().includes(location.toLowerCase())
-        ) {
-          score += 20;
-        }
-
-        // Amenities - 10%
-        if (requestedAmenities.length === 0) {
-          score += 10;
-        } else {
-          const spaceAmenities = space.amenities.map((item) =>
-            item.toLowerCase(),
-          );
-
-          const matchedAmenities = requestedAmenities.filter((item) =>
-            spaceAmenities.includes(item),
-          );
-
-          const amenityScore =
-            (matchedAmenities.length / requestedAmenities.length) * 10;
-
-          score += amenityScore;
-        }
-
-        // Workspace Type - 5%
-        if (
-          !workspaceType ||
-          space.workspaceType.toLowerCase() === workspaceType.toLowerCase()
-        ) {
-          score += 5;
-        }
-
-        return {
-          ...space.toObject(),
-          matchScore: Math.round(score),
-        };
-      })
-      .filter((space) => space.matchScore > 0)
-      .sort((a, b) => b.matchScore - a.matchScore);
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      count: results.length,
-      filters: {
-        persons: requestedPersons,
-        area: requestedArea,
-        budget: requestedBudget,
-        location: location || "",
-        amenities: requestedAmenities,
-        workspaceType: workspaceType || "",
-      },
-      spaces: results,
+      count: spaces.length,
+      spaces,
     });
   } catch (error) {
-    res.status(500).json({
+    console.error("Search spaces error:", error);
+
+    return res.status(500).json({
       success: false,
       message: "Failed to search workspaces",
       error: error.message,
     });
   }
+};
+
+export {
+  createSpace,
+  getAllSpaces,
+  getSpaceById,
+  getMySpaces,
+  updateSpace,
+  deleteSpace,
+  searchSpaces,
 };

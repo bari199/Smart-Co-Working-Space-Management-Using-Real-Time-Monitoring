@@ -14,10 +14,47 @@ const inquirySchema = new mongoose.Schema(
       required: true,
     },
 
-    message: {
+    spaceType: {
       type: String,
       required: true,
       trim: true,
+    },
+
+    seats: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    firstName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    lastName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+    },
+
+    mobile: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    message: {
+      type: String,
+      trim: true,
+      default: "",
     },
 
     reply: {

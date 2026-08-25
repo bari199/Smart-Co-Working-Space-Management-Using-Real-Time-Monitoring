@@ -1,0 +1,2084 @@
+
+
+ /-space
+        spaceCard.jsx
+        SpaceForm.jsx
+        SpaceGrid.jsx
+
+import { Link } from "react-router-dom";
+
+const SpaceCard = ({ space }) => {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] transition hover:-translate-y-1 hover:shadow-md">
+      <div className="h-48 overflow-hidden bg-[var(--accent)]/20">
+        {space.image ? (
+          <img
+            src={space.image}
+            alt={space.name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-[var(--secondary)]">
+            No Image
+          </div>
+        )}
+      </div>
+
+      <div className="p-5">
+        <div className="mb-2 flex items-start justify-between gap-3">
+          <h3 className="text-lg font-semibold text-[var(--text)]">
+            {space.name}
+          </h3>
+
+          <span className="rounded-full bg-[var(--accent)]/30 px-3 py-1 text-xs font-medium text-[var(--primary)] dark:text-[var(--accent)]">
+            {space.workspaceType || "Workspace"}
+          </span>
+        </div>
+
+        <p className="mb-3 line-clamp-2 text-sm text-[var(--muted)]">
+          {space.description || "A comfortable workspace for your needs."}
+        </p>
+
+        <div className="space-y-1 text-sm text-[var(--muted)]">
+          <p>
+            <span className="font-medium text-[var(--text)]">Location:</span>{" "}
+            {space.location}
+          </p>
+
+          <p>
+            <span className="font-medium text-[var(--text)]">Capacity:</span>{" "}
+            {space.capacity}
+          </p>
+
+          <p>
+            <span className="font-medium text-[var(--text)]">Price:</span> ₹
+            {space.price}
+          </p>
+        </div>
+
+        <Link
+          to={`/spaces/${space._id}`}
+          className="mt-5 block rounded-lg bg-[var(--primary)] px-4 py-2.5 text-center text-sm font-medium text-white transition hover:opacity-90"
+        >
+          View Details
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+export default SpaceCard;
+import React from "react";
+
+const SpaceForm = () => {
+  return <div>SpaceForm</div>;
+};
+
+export default SpaceForm;
+import SpaceCard from "./spaceCard";
+
+const SpaceGrid = ({ spaces = [] }) => {
+  if (!spaces.length) {
+    return (
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-10 text-center">
+        <p className="text-[var(--muted)]">No workspaces found.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {spaces.map((space) => (
+        <SpaceCard key={space._id} space={space} />
+      ))}
+    </div>
+  );
+};
+
+export default SpaceGrid;
+/-context   
+        /-authContext
+
+import { createContext, useContext, useState } from "react";
+
+const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  const login = (data) => {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    setUser(data.user);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        login,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
+
+/-lib
+    utils.js
+
+
+
+
+/-pages
+      booking-/
+            Booking.jsx
+       
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { toast } from "sonner";
+
+import BookingForm from "../../components/booking/BookingForm";
+import Loading from "../../components/common/Loading";
+import { getSpaceById } from "../services/spaceService";
+
+const Booking = () => {
+  const { id } = useParams();
+
+  const [space, setSpace] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadSpace = async () => {
+      try {
+        const data = await getSpaceById(id);
+
+        setSpace(data?.space || data?.data || data);
+      } catch (error) {
+        toast.error(error.message || "Failed to load workspace");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSpace();
+  }, [id]);
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (!space) {
+    return <div className="p-10 text-center">Workspace not found.</div>;
+  }
+
+  return (
+    <div className="min-h-screen bg-[var(--background)] px-4 py-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-8">
+          <p className="text-sm text-[var(--secondary)]">Booking</p>
+
+          <h1 className="mt-1 text-3xl font-bold">{space.name}</h1>
+        </div>
+
+        <BookingForm space={space} />
+      </div>
+    </div>
+  );
+};
+
+export default Booking;
+
+owner-/
+                    MySpaces.jsx
+                    OwnerBooking.jsx
+                    OwnerDashboard.jsx
+                    OwnerInquiries.jsx
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import SpaceCard from "../../components/space/spaceCard";
+import SpaceForm from "../../components/space/SpaceForm";
+import Loading from "../../components/common/Loading";
+
+import {
+  getOwnerSpaces,
+  createSpace,
+  updateSpace,
+  deleteSpace,
+} from "../services/spaceService";
+
+const MySpaces = () => {
+  const [spaces, setSpaces] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingSpace, setEditingSpace] = useState(null);
+
+  const fetchSpaces = async () => {
+    try {
+      setLoading(true);
+
+      const data = await getOwnerSpaces();
+
+      setSpaces(data?.spaces || data?.data || data || []);
+    } catch (error) {
+      toast.error(error.message || "Failed to load spaces");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSpaces();
+  }, []);
+
+  const handleSubmit = async (formData) => {
+    try {
+      setSaving(true);
+
+      if (editingSpace) {
+        await updateSpace(editingSpace._id, formData);
+        toast.success("Space updated successfully");
+      } else {
+        await createSpace(formData);
+        toast.success("Space created successfully");
+      }
+
+      setShowForm(false);
+      setEditingSpace(null);
+
+      await fetchSpaces();
+    } catch (error) {
+      toast.error(error.message || "Failed to save space");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this space?",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteSpace(id);
+
+      toast.success("Space deleted successfully");
+
+      setSpaces((prev) => prev.filter((space) => space._id !== id));
+    } catch (error) {
+      toast.error(error.message || "Failed to delete space");
+    }
+  };
+
+  const handleEdit = (space) => {
+    setEditingSpace(space);
+    setShowForm(true);
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  return (
+    <div className="min-h-screen bg-[var(--background)] px-4 py-8">
+      <div className="mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-sm font-medium text-[var(--secondary)]">Owner</p>
+
+            <h1 className="text-3xl font-bold text-[var(--text)]">My Spaces</h1>
+
+            <p className="mt-1 text-[var(--muted)]">
+              Manage your workspace listings.
+            </p>
+          </div>
+
+          {!showForm && (
+            <button
+              onClick={() => {
+                setEditingSpace(null);
+                setShowForm(true);
+              }}
+              className="rounded-lg bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-white"
+            >
+              + Add Space
+            </button>
+          )}
+        </div>
+
+        {/* Form */}
+        {showForm && (
+          <div className="mb-8">
+            <SpaceForm
+              space={editingSpace}
+              onSubmit={handleSubmit}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingSpace(null);
+              }}
+              loading={saving}
+            />
+          </div>
+        )}
+
+        {/* Spaces */}
+        {spaces.length === 0 ? (
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-10 text-center">
+            <h2 className="text-xl font-semibold text-[var(--text)]">
+              No spaces yet
+            </h2>
+
+            <p className="mt-2 text-[var(--muted)]">
+              Add your first workspace to get started.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {spaces.map((space) => (
+              <div key={space._id}>
+                <SpaceCard space={space} />
+
+                <div className="mt-3 flex gap-2">
+                  <button
+                    onClick={() => handleEdit(space)}
+                    className="flex-1 rounded-lg border border-[var(--secondary)] px-3 py-2 text-sm font-medium text-[var(--secondary)]"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(space._id)}
+                    className="flex-1 rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-600"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default MySpaces;
+import { useEffect, useState } from "react";
+
+import { toast } from "sonner";
+
+import {
+  getOwnerBookings,
+  updateBookingStatus,
+} from "../services/bookingService";
+
+import Loading from "../../components/common/Loading";
+
+const OwnerBookings = () => {
+  const [bookings, setBookings] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+
+  const fetchBookings = async () => {
+    try {
+      const data = await getOwnerBookings();
+
+      setBookings(data?.bookings || data?.data || data || []);
+    } catch (error) {
+      toast.error(error.message || "Failed to load bookings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const updateStatus = async (id, status) => {
+    try {
+      await api(`/bookings/${id}/status`, {
+        method: "PUT",
+
+        body: JSON.stringify({ status }),
+      });
+
+      toast.success(`Booking ${status}`);
+
+      fetchBookings();
+    } catch (error) {
+      toast.error(error.message || "Failed to update booking");
+    }
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  return (
+    <div className="min-h-screen bg-[var(--background)] px-4 py-8">
+           {" "}
+      <div className="mx-auto max-w-6xl">
+               {" "}
+        <div className="mb-8">
+                   {" "}
+          <p className="text-sm font-medium text-[var(--secondary)]">Owner</p> 
+                 {" "}
+          <h1 className="text-3xl font-bold text-[var(--text)]">
+                        Owner Bookings          {" "}
+          </h1>
+                   {" "}
+          <p className="mt-1 text-[var(--muted)]">
+                        Review and manage bookings for your spaces.        
+             {" "}
+          </p>
+                 {" "}
+        </div>
+               {" "}
+        {bookings.length === 0 ? (
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-10 text-center">
+                       {" "}
+            <h2 className="text-xl font-semibold text-[var(--text)]">
+                            No bookings yet            {" "}
+            </h2>
+                       {" "}
+            <p className="mt-2 text-[var(--muted)]">
+                            Bookings for your spaces will appear here.          
+               {" "}
+            </p>
+                     {" "}
+          </div>
+        ) : (
+          <div className="space-y-4">
+                       {" "}
+            {bookings.map((booking) => (
+              <div
+                key={booking._id}
+                className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5"
+              >
+                               {" "}
+                <div className="flex flex-col justify-between gap-4 md:flex-row">
+                                   {" "}
+                  <div>
+                                       {" "}
+                    <h2 className="text-lg font-semibold text-[var(--text)]">
+                                            {booking.space?.name || "Workspace"}
+                                         {" "}
+                    </h2>
+                                       {" "}
+                    <p className="mt-1 text-sm text-[var(--muted)]">
+                                            Customer:                      {" "}
+                      {booking.user?.name ||
+                        booking.user?.email ||
+                        "Unknown user"}
+                                         {" "}
+                    </p>
+                                       {" "}
+                    <p className="mt-1 text-sm text-[var(--muted)]">
+                                            Date:                      {" "}
+                      {booking.date
+                        ? new Date(booking.date).toLocaleDateString()
+                        : "N/A"}
+                                         {" "}
+                    </p>
+                                       {" "}
+                    <p className="mt-1 text-sm text-[var(--muted)]">
+                                            Amount: $
+                      {booking.totalPrice || booking.price || 0}               
+                         {" "}
+                    </p>
+                                     {" "}
+                  </div>
+                                   {" "}
+                  <div className="flex items-center gap-2">
+                                       {" "}
+                    <span className="rounded-full bg-[var(--accent)]/30 px-3 py-1 text-sm font-medium text-[var(--primary)]">
+                                            {booking.status || "pending"}       
+                                 {" "}
+                    </span>
+                                     {" "}
+                  </div>
+                                 {" "}
+                </div>
+                               {" "}
+                {(!booking.status || booking.status === "pending") && (
+                  <div className="mt-5 flex gap-3 border-t border-[var(--border)] pt-4">
+                                       {" "}
+                    <button
+                      onClick={() => updateStatus(booking._id, "confirmed")}
+                      className="rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white"
+                    >
+                                            Approve                    {" "}
+                    </button>
+                                       {" "}
+                    <button
+                      onClick={() => updateStatus(booking._id, "rejected")}
+                      className="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-600"
+                    >
+                                            Reject                    {" "}
+                    </button>
+                                     {" "}
+                  </div>
+                )}
+                             {" "}
+              </div>
+            ))}
+                     {" "}
+          </div>
+        )}
+             {" "}
+      </div>
+         {" "}
+    </div>
+  );
+};
+
+export default OwnerBookings;
+import { Link } from "react-router-dom";
+import { useAuth } from "../../context/authContext";
+
+const OwnerDashboard = () => {
+  const { user } = useAuth();
+
+  return (
+    <div className="min-h-screen bg-[var(--background)] px-4 py-8">
+      <div className="mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="mb-8">
+          <p className="text-sm font-medium text-[var(--secondary)]">
+            Owner Dashboard
+          </p>
+
+          <h1 className="mt-1 text-3xl font-bold text-[var(--text)]">
+            Welcome, {user?.name || "Owner"} 👋
+          </h1>
+
+          <p className="mt-2 text-[var(--muted)]">
+            Manage your spaces, bookings and inquiries from here.
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Link
+            to="/owner/spaces"
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition hover:-translate-y-1 hover:border-[var(--accent)]"
+          >
+            <p className="text-sm text-[var(--muted)]">My Spaces</p>
+
+            <h2 className="mt-2 text-3xl font-bold text-[var(--primary)]">→</h2>
+
+            <p className="mt-3 text-sm text-[var(--muted)]">
+              Add and manage your workspace listings.
+            </p>
+          </Link>
+
+          <Link
+            to="/owner/bookings"
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition hover:-translate-y-1 hover:border-[var(--accent)]"
+          >
+            <p className="text-sm text-[var(--muted)]">Bookings</p>
+
+            <h2 className="mt-2 text-3xl font-bold text-[var(--primary)]">→</h2>
+
+            <p className="mt-3 text-sm text-[var(--muted)]">
+              View and manage customer bookings.
+            </p>
+          </Link>
+
+          <Link
+            to="/owner/inquiries"
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition hover:-translate-y-1 hover:border-[var(--accent)]"
+          >
+            <p className="text-sm text-[var(--muted)]">Inquiries</p>
+
+            <h2 className="mt-2 text-3xl font-bold text-[var(--primary)]">→</h2>
+
+            <p className="mt-3 text-sm text-[var(--muted)]">
+              Check questions and requests from users.
+            </p>
+          </Link>
+        </div>
+
+        {/* Quick actions */}
+        <div className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6">
+          <h2 className="text-xl font-semibold text-[var(--text)]">
+            Quick Actions
+          </h2>
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link
+              to="/owner/spaces"
+              className="rounded-lg bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+            >
+              Manage Spaces
+            </Link>
+
+            <Link
+              to="/owner/bookings"
+              className="rounded-lg border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--text)] transition hover:border-[var(--accent)]"
+            >
+              View Bookings
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OwnerDashboard;
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import Loading from "../../components/common/Loading";
+import { api } from "../services/api";
+
+const OwnerInquiries = () => {
+  const [inquiries, setInquiries] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchInquiries = async () => {
+    try {
+      const data = await api("/inquiries/owner");
+
+      setInquiries(data?.inquiries || data?.data || data || []);
+    } catch (error) {
+      toast.error(error.message || "Failed to load inquiries");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInquiries();
+  }, []);
+
+  const closeInquiry = async (id) => {
+    try {
+      await api(`/inquiries/${id}/close`, {
+        method: "PUT",
+      });
+
+      toast.success("Inquiry closed");
+
+      fetchInquiries();
+    } catch (error) {
+      toast.error(error.message || "Failed to close inquiry");
+    }
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  return (
+    <div className="min-h-screen bg-[var(--background)] px-4 py-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-8">
+          <p className="text-sm font-medium text-[var(--secondary)]">Owner</p>
+
+          <h1 className="text-3xl font-bold text-[var(--text)]">
+            Owner Inquiries
+          </h1>
+
+          <p className="mt-1 text-[var(--muted)]">
+            Questions and messages from your customers.
+          </p>
+        </div>
+
+        {inquiries.length === 0 ? (
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-10 text-center">
+            <h2 className="text-xl font-semibold text-[var(--text)]">
+              No inquiries
+            </h2>
+
+            <p className="mt-2 text-[var(--muted)]">
+              Customer inquiries will appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {inquiries.map((inquiry) => (
+              <div
+                key={inquiry._id}
+                className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5"
+              >
+                <div className="flex flex-col justify-between gap-4 md:flex-row">
+                  <div>
+                    <h2 className="text-lg font-semibold text-[var(--text)]">
+                      {inquiry.subject || "Space Inquiry"}
+                    </h2>
+
+                    <p className="mt-2 text-sm text-[var(--muted)]">
+                      {inquiry.message || inquiry.description || "No message"}
+                    </p>
+
+                    <p className="mt-3 text-sm text-[var(--muted)]">
+                      From:{" "}
+                      {inquiry.user?.name ||
+                        inquiry.user?.email ||
+                        "Unknown user"}
+                    </p>
+                  </div>
+
+                  <span className="h-fit rounded-full bg-[var(--accent)]/30 px-3 py-1 text-sm font-medium text-[var(--primary)]">
+                    {inquiry.status || "open"}
+                  </span>
+                </div>
+
+                {inquiry.status !== "closed" && (
+                  <div className="mt-5 border-t border-[var(--border)] pt-4">
+                    <button
+                      onClick={() => closeInquiry(inquiry._id)}
+                      className="rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white"
+                    >
+                      Close Inquiry
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default OwnerInquiries;
+import { useParams } from "react-router-dom";
+
+const Payment = () => {
+  const { bookingId } = useParams();
+
+  return (
+    <div className="min-h-screen bg-[var(--background)] px-4 py-10">
+      <div className="mx-auto max-w-lg">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6">
+          <p className="text-sm text-[var(--secondary)]">Payment</p>
+
+          <h1 className="mt-1 text-2xl font-bold">Complete Your Payment</h1>
+
+          <p className="mt-3 text-sm text-[var(--muted)]">
+            Booking ID: {bookingId}
+          </p>
+
+          {/* Existing Razorpay/payment UI রাখবে এখানে */}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Payment;
+/-services
+
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import SpaceCard from "../../components/space/spaceCard";
+import SpaceForm from "../../components/space/SpaceForm";
+import Loading from "../../components/common/Loading";
+
+import {
+  getOwnerSpaces,
+  createSpace,
+  updateSpace,
+  deleteSpace,
+} from "../services/spaceService";
+
+const MySpaces = () => {
+  const [spaces, setSpaces] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingSpace, setEditingSpace] = useState(null);
+
+  const fetchSpaces = async () => {
+    try {
+      setLoading(true);
+
+      const data = await getOwnerSpaces();
+
+      setSpaces(data?.spaces || data?.data || data || []);
+    } catch (error) {
+      toast.error(error.message || "Failed to load spaces");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSpaces();
+  }, []);
+
+  const handleSubmit = async (formData) => {
+    try {
+      setSaving(true);
+
+      if (editingSpace) {
+        await updateSpace(editingSpace._id, formData);
+        toast.success("Space updated successfully");
+      } else {
+        await createSpace(formData);
+        toast.success("Space created successfully");
+      }
+
+      setShowForm(false);
+      setEditingSpace(null);
+
+      await fetchSpaces();
+    } catch (error) {
+      toast.error(error.message || "Failed to save space");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this space?",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteSpace(id);
+
+      toast.success("Space deleted successfully");
+
+      setSpaces((prev) => prev.filter((space) => space._id !== id));
+    } catch (error) {
+      toast.error(error.message || "Failed to delete space");
+    }
+  };
+
+  const handleEdit = (space) => {
+    setEditingSpace(space);
+    setShowForm(true);
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  return (
+    <div className="min-h-screen bg-[var(--background)] px-4 py-8">
+      <div className="mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-sm font-medium text-[var(--secondary)]">Owner</p>
+
+            <h1 className="text-3xl font-bold text-[var(--text)]">My Spaces</h1>
+
+            <p className="mt-1 text-[var(--muted)]">
+              Manage your workspace listings.
+            </p>
+          </div>
+
+          {!showForm && (
+            <button
+              onClick={() => {
+                setEditingSpace(null);
+                setShowForm(true);
+              }}
+              className="rounded-lg bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-white"
+            >
+              + Add Space
+            </button>
+          )}
+        </div>
+
+        {/* Form */}
+        {showForm && (
+          <div className="mb-8">
+            <SpaceForm
+              space={editingSpace}
+              onSubmit={handleSubmit}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingSpace(null);
+              }}
+              loading={saving}
+            />
+          </div>
+        )}
+
+        {/* Spaces */}
+        {spaces.length === 0 ? (
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-10 text-center">
+            <h2 className="text-xl font-semibold text-[var(--text)]">
+              No spaces yet
+            </h2>
+
+            <p className="mt-2 text-[var(--muted)]">
+              Add your first workspace to get started.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {spaces.map((space) => (
+              <div key={space._id}>
+                <SpaceCard space={space} />
+
+                <div className="mt-3 flex gap-2">
+                  <button
+                    onClick={() => handleEdit(space)}
+                    className="flex-1 rounded-lg border border-[var(--secondary)] px-3 py-2 text-sm font-medium text-[var(--secondary)]"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(space._id)}
+                    className="flex-1 rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-600"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default MySpaces;
+import { api } from "./api";
+
+export const loginUser = async (data) => {
+  return api("/auth/login", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+};
+
+export const registerUser = async (data) => {
+  return api("/auth/register", {
+    method: "POST",
+    body: data,
+  });
+};
+import { api } from "./api";
+
+export const createBooking = async (data) => {
+  return api("/bookings", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+};
+
+export const getMyBookings = async () => {
+  return api("/bookings/my-bookings");
+};
+
+export const cancelBooking = async (id) => {
+  return api(`/bookings/${id}/cancel`, {
+    method: "PUT",
+  });
+};
+
+export const getOwnerBookings = async () => {
+  return api("/bookings/owner");
+};
+
+export const updateBookingStatus = async (id, status) => {
+  return api(`/bookings/${id}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ status }),
+  });
+};
+import { api } from "./api";
+
+export const createInquiry = async (data) => {
+  return api("/inquiries", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+};
+
+export const getMyInquiries = async () => {
+  return api("/inquiries/my-inquiries");
+};
+
+export const closeInquiry = async (id) => {
+  return api(`/inquiries/${id}/close`, {
+    method: "PUT",
+  });
+};
+import { api } from "./api";
+
+export const getNotifications = async () => {
+  return api("/notifications");
+};
+
+export const markNotificationAsRead = async (id) => {
+  return api(`/notifications/${id}/read`, {
+    method: "PUT",
+  });
+};
+import { api } from "./api";
+
+export const getSpaces = async () => {
+  return api("/spaces");
+};
+
+export const searchSpaces = async (params = {}) => {
+  const query = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      query.append(key, value);
+    }
+  });
+
+  return api(`/spaces/search?${query.toString()}`);
+};
+
+export const getSpaceById = async (id) => {
+  return api(`/spaces/${id}`);
+};
+
+export const getOwnerSpaces = async () => {
+  return api("/spaces/owner");
+};
+
+export const createSpace = async (data) => {
+  return api("/spaces", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+};
+
+export const updateSpace = async (id, data) => {
+  return api(`/spaces/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+};
+
+export const deleteSpace = async (id) => {
+  return api(`/spaces/${id}`, {
+    method: "DELETE",
+  });
+};
+
+/-spaces
+    /-SpaceDetails.jsx
+    /-spaces.jsx
+             
+import { useEffect, useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+
+import { getSpaceById } from "../services/spaceService";
+import Loading from "../../components/common/Loading";
+
+const SpaceDetails = () => {
+  const { id } = useParams();
+
+  const [space, setSpace] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadSpace = async () => {
+      try {
+        setLoading(true);
+
+        const data = await getSpaceById(id);
+
+        setSpace(data.space || data.data || data);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSpace();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-16">
+        <Loading />
+      </div>
+    );
+  }
+
+  if (error || !space) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-16">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8 text-center">
+          <h2 className="text-xl font-semibold">Workspace not found</h2>
+
+          <p className="mt-2 text-[var(--muted)]">
+            {error || "This workspace is no longer available."}
+          </p>
+
+          <Link
+            to="/spaces"
+            className="mt-5 inline-block rounded-lg bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-white"
+          >
+            Back to Workspaces
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 py-10">
+      <div className="grid gap-8 lg:grid-cols-2">
+        <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+          {space.image ? (
+            <img
+              src={space.image}
+              alt={space.name}
+              className="h-full min-h-[350px] w-full object-cover"
+            />
+          ) : (
+            <div className="flex min-h-[350px] items-center justify-center bg-[var(--accent)]/20 text-[var(--secondary)]">
+              No Image
+            </div>
+          )}
+        </div>
+
+        <div>
+          <span className="rounded-full bg-[var(--accent)]/30 px-3 py-1 text-sm font-medium text-[var(--primary)] dark:text-[var(--accent)]">
+            {space.workspaceType || "Workspace"}
+          </span>
+
+          <h1 className="mt-4 text-3xl font-bold md:text-4xl">{space.name}</h1>
+
+          <p className="mt-4 leading-7 text-[var(--muted)]">
+            {space.description}
+          </p>
+
+          <div className="mt-6 space-y-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+            <p>
+              <span className="font-semibold">Location:</span> {space.location}
+            </p>
+
+            <p>
+              <span className="font-semibold">Area:</span> {space.area}
+            </p>
+
+            <p>
+              <span className="font-semibold">Capacity:</span> {space.capacity}
+            </p>
+
+            <p>
+              <span className="font-semibold">Price:</span> ₹{space.price}
+            </p>
+          </div>
+
+          {space.amenities?.length > 0 && (
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold">Amenities</h2>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {space.amenities.map((amenity, index) => (
+                  <span
+                    key={index}
+                    className="rounded-full border border-[var(--border)] bg-[var(--accent)]/10 px-3 py-1.5 text-sm"
+                  >
+                    {amenity}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={() => navigate(`/spaces/${space._id}/book`)}
+            className="rounded-lg bg-[var(--primary)] px-5 py-3 font-medium text-white"
+          >
+            Book This Space
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default SpaceDetails;
+import { useEffect, useState } from "react";
+
+import SpaceGrid from "../../components/space/SpaceGrid";
+import Loading from "../../components/common/Loading";
+import { getSpaces } from "../services/spaceService";
+
+const Spaces = () => {
+  const [spaces, setSpaces] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const loadSpaces = async () => {
+      try {
+        setLoading(true);
+
+        const data = await getSpaces();
+
+        setSpaces(data.spaces || data.data || data || []);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSpaces();
+  }, []);
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 py-12">
+      <div className="mb-10">
+        <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-[var(--secondary)]">
+          Find your workspace
+        </p>
+
+        <h1 className="text-3xl font-bold md:text-4xl">Explore Workspaces</h1>
+
+        <p className="mt-3 max-w-2xl text-[var(--muted)]">
+          Discover comfortable and flexible workspaces that fit your needs.
+        </p>
+      </div>
+
+      {loading ? (
+        <Loading />
+      ) : error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-700">
+          {error}
+        </div>
+      ) : (
+        <SpaceGrid spaces={spaces} />
+      )}
+    </section>
+  );
+};
+
+export default Spaces;
+/-user 
+    /-MyBooking
+    /-MyInquiries
+    /-Notifications.jsx
+    /-UserDashboard.jsx
+
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import BookingCard from "../../components/booking/BookingCard";
+import Loading from "../../components/common/Loading";
+import { getMyBookings } from "../services/bookingService";
+
+const MyBookings = () => {
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadBookings = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const data = await getMyBookings();
+
+      setBookings(data.bookings || data.data || data || []);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadBookings();
+  }, [loadBookings]);
+
+  return (
+    <div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">My Bookings</h1>
+
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Manage your workspace bookings.
+        </p>
+      </div>
+
+      {loading ? (
+        <Loading />
+      ) : bookings.length === 0 ? (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-10 text-center">
+          <h2 className="font-semibold">No bookings yet</h2>
+
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Your workspace bookings will appear here.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {bookings.map((booking) => (
+            <BookingCard
+              key={booking._id}
+              booking={booking}
+              onUpdated={loadBookings}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MyBookings;
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import InquiryCard from "../../components/inquiry/InquiryCard";
+import Loading from "../../components/common/Loading";
+import { getMyInquiries } from "../services/inquiryService";
+
+const MyInquiries = () => {
+  const [inquiries, setInquiries] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadInquiries = async () => {
+      try {
+        const data = await getMyInquiries();
+
+        setInquiries(data.inquiries || data.data || data || []);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInquiries();
+  }, []);
+
+  return (
+    <div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">My Inquiries</h1>
+
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          View your workspace inquiries and replies.
+        </p>
+      </div>
+
+      {loading ? (
+        <Loading />
+      ) : inquiries.length === 0 ? (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-10 text-center">
+          <h2 className="font-semibold">No inquiries yet</h2>
+
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Your inquiries will appear here.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {inquiries.map((inquiry) => (
+            <InquiryCard key={inquiry._id} inquiry={inquiry} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MyInquiries;
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import Loading from "../../components/common/Loading";
+import {
+  getNotifications,
+  markNotificationAsRead,
+} from "../services/notificationService";
+
+const Notifications = () => {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadNotifications = async () => {
+    try {
+      const data = await getNotifications();
+
+      setNotifications(data.notifications || data.data || data || []);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  const handleRead = async (id) => {
+    try {
+      await markNotificationAsRead(id);
+
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification._id === id
+            ? { ...notification, read: true }
+            : notification,
+        ),
+      );
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  return (
+    <div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">Notifications</h1>
+
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Stay updated with your account activity.
+        </p>
+      </div>
+
+      {loading ? (
+        <Loading />
+      ) : notifications.length === 0 ? (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-10 text-center">
+          <h2 className="font-semibold">No notifications</h2>
+
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            You're all caught up.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {notifications.map((notification) => (
+            <div
+              key={notification._id}
+              className={`rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 ${
+                !notification.read
+                  ? "border-l-4 border-l-[var(--secondary)]"
+                  : ""
+              }`}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="font-medium">
+                    {notification.title || "Notification"}
+                  </h3>
+
+                  <p className="mt-1 text-sm text-[var(--muted)]">
+                    {notification.message}
+                  </p>
+                </div>
+
+                {!notification.read && (
+                  <button
+                    onClick={() => handleRead(notification._id)}
+                    className="shrink-0 text-xs font-medium text-[var(--secondary)] hover:underline"
+                  >
+                    Mark as read
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Notifications;
+import { Link } from "react-router-dom";
+import { useAuth } from "../../context/authContext";
+
+const UserDashboard = () => {
+  const { user } = useAuth();
+
+  return (
+    <div>
+      <div className="mb-8">
+        <p className="text-sm text-[var(--muted)]">Welcome back</p>
+
+        <h1 className="text-3xl font-bold">{user?.name || "User"}</h1>
+
+        <p className="mt-2 text-[var(--muted)]">
+          Manage your workspaces, bookings and inquiries.
+        </p>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <Link
+          to="/dashboard/bookings"
+          className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition hover:-translate-y-1 hover:shadow-md"
+        >
+          <h2 className="font-semibold">My Bookings</h2>
+
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            View and manage your workspace bookings.
+          </p>
+        </Link>
+
+        <Link
+          to="/dashboard/inquiries"
+          className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition hover:-translate-y-1 hover:shadow-md"
+        >
+          <h2 className="font-semibold">My Inquiries</h2>
+
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Check your inquiries and owner replies.
+          </p>
+        </Link>
+
+        <Link
+          to="/dashboard/notifications"
+          className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition hover:-translate-y-1 hover:shadow-md"
+        >
+          <h2 className="font-semibold">Notifications</h2>
+
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Stay updated with your latest activity.
+          </p>
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+export default UserDashboard;
+import HeroSection from "../components/home/HeroSection";
+import TrustedCompanies from "../components/home/TrustedCompanies";
+import PopularCities from "../components/home/PopularCities";
+import FeaturedSpaces from "../components/home/FeaturedSpaces";
+import CoworkingBrands from "../components/home/CoworkingBrands";
+import HowItWorks from "../components/home/HowItWorks";
+import WhyChooseUs from "../components/home/WhyChooseUs";
+import MarketplaceStats from "../components/home/MarketplaceStats";
+import Testimonials from "../components/home/Testimonials";
+import CTASection from "../components/home/CTASection";
+import FAQSection from "../components/home/FAQSection";
+import HostCTA from "../components/home/HostCTA";
+
+const Home = () => {
+  return (
+    <>
+      <HeroSection />
+      <TrustedCompanies />
+      <PopularCities />
+      <FeaturedSpaces />
+      <CoworkingBrands />
+      <HowItWorks />
+      <WhyChooseUs />
+      <MarketplaceStats />
+      <Testimonials />
+      <CTASection />
+      <FAQSection />
+      <HostCTA />
+    </>
+  );
+};
+
+export default Home;
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+
+import { loginUser } from "./services/authService";
+import { useAuth } from "../context/authContext";
+
+const Login = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+
+      const data = await loginUser(formData);
+
+      login(data);
+
+      toast.success("Login successful");
+
+      if (data.user.role === "owner") {
+        navigate("/owner");
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-[calc(100vh-64px)] items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-[var(--text)]">
+            Welcome Back
+          </h1>
+
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            Login to your SmartSpace account
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium">Email</label>
+
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2.5 outline-none focus:border-[var(--secondary)]"
+              placeholder="you@example.com"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">Password</label>
+
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2.5 outline-none focus:border-[var(--secondary)]"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-lg bg-[var(--primary)] px-4 py-2.5 font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-[var(--muted)]">
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            className="font-medium text-[var(--secondary)] hover:underline"
+          >
+            Register
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+
+import { registerUser } from "./services/authService";
+import { useAuth } from "../context/authContext";
+
+const Register = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    role: "user",
+    location: "",
+    profilePicture: null,
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+
+      const data = new FormData();
+
+      data.append("name", formData.name);
+      data.append("email", formData.email);
+      data.append("password", formData.password);
+      data.append("phone", formData.phone);
+      data.append("role", formData.role);
+      data.append("location", formData.location);
+
+      if (formData.profilePicture) {
+        data.append("profilePicture", formData.profilePicture);
+      }
+
+      const response = await registerUser(data);
+
+      login(response);
+
+      toast.success("Registration successful");
+
+      if (response.user.role === "owner") {
+        navigate("/owner");
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-[calc(100vh-64px)] items-center justify-center px-4 py-10">
+      <div className="w-full max-w-lg rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">Create Account</h1>
+
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            Join SmartSpace today
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            name="name"
+            placeholder="Full name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2.5 outline-none focus:border-[var(--secondary)]"
+          />
+
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2.5 outline-none focus:border-[var(--secondary)]"
+          />
+
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            minLength={6}
+            className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2.5 outline-none focus:border-[var(--secondary)]"
+          />
+
+          <input
+            name="phone"
+            placeholder="Phone"
+            value={formData.phone}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2.5 outline-none focus:border-[var(--secondary)]"
+          />
+
+          <input
+            name="location"
+            placeholder="Location"
+            value={formData.location}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2.5 outline-none focus:border-[var(--secondary)]"
+          />
+
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 outline-none focus:border-[var(--secondary)]"
+          >
+            <option value="user">User</option>
+            <option value="owner">Workspace Owner</option>
+          </select>
+
+          <input
+            type="file"
+            name="profilePicture"
+            accept="image/*"
+            onChange={handleChange}
+            className="w-full text-sm"
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-lg bg-[var(--primary)] px-4 py-2.5 font-medium text-white hover:opacity-90 disabled:opacity-60"
+          >
+            {loading ? "Creating account..." : "Create Account"}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-[var(--muted)]">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="font-medium text-[var(--secondary)] hover:underline"
+          >
+            Login
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Register;
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+
+import MainLayout from "./components/layout/MainLayout";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+
+import Spaces from "./pages/spaces/spaces";
+import SpaceDetails from "./pages/spaces/SpaceDetails";
+
+import UserDashboard from "./pages/user/UserDashboard";
+import MyBookings from "./pages/user/MyBookings";
+import MyInquiries from "./pages/user/MyInquiries";
+import Notifications from "./pages/user/Notifications";
+
+import OwnerDashboard from "./pages/owner/OwnerDashboard";
+import MySpaces from "./pages/owner/MySpaces";
+import OwnerBookings from "./pages/owner/OwnerBookings";
+import OwnerInquiries from "./pages/owner/OwnerInquiries";
+import Booking from "./pages/booking/Booking";
+import Payment from "./pages/payments/Payment";
+
+const App = () => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          <Route path="/spaces" element={<Spaces />} />
+          <Route path="/spaces/:id" element={<SpaceDetails />} />
+
+          <Route element={<ProtectedRoute />}>
+            {/* User routes */}
+
+            <Route path="/dashboard" element={<UserDashboard />} />
+            <Route path="/dashboard/bookings" element={<MyBookings />} />
+            <Route path="/dashboard/inquiries" element={<MyInquiries />} />
+            <Route
+              path="/dashboard/notifications"
+              element={<Notifications />}
+            />
+
+            {/* Booking */}
+            <Route path="/spaces/:id/book" element={<Booking />} />
+
+            <Route path="/payment/:bookingId" element={<Payment />} />
+
+            {/* Owner routes */}
+
+            <Route path="/owner" element={<OwnerDashboard />} />
+            <Route path="/owner/spaces" element={<MySpaces />} />
+            <Route path="/owner/bookings" element={<OwnerBookings />} />
+            <Route path="/owner/inquiries" element={<OwnerInquiries />} />
+          </Route>
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default App;
+@import "tailwindcss";
+
+:root {
+  --primary: #062631;
+  --primary-dark: #041b23;
+
+  --secondary: #426f73;
+  --accent: #86b8b5;
+
+  --background: #f5f7f6;
+  --surface: #ffffff;
+  --surface-muted: #d7ddde;
+
+  --text: #062631;
+  --muted: #607477;
+
+  --border: #d7ddde;
+
+  --navy: #062631;
+  --teal: #426f73;
+  --aqua: #86b8b5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--background);
+  color: var(--text);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--primary);
+}
+
+.container-width {
+  width: min(1180px, calc(100% - 32px));
+  margin-inline: auto;
+}
+
+.section-padding {
+  padding-block: 72px;
+}
+
+@media (max-width: 640px) {
+  .section-padding {
+    padding-block: 52px;
+  }
+}
+
+.section-label {
+  color: var(--secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.section-title {
+  color: var(--text);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+}
+
+.section-description {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+import React from "react";
+import ReactDOM from "react-dom/client";
+
+import App from "./App.jsx";
+import { AuthProvider } from "./context/authContext";
+import "./index.css";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </React.StrictMode>,
+);
+VITE_API_URL=http://localhost:8000/api
+            

@@ -1,18 +1,48 @@
+// Create Inquiry
 import Inquiry from "../models/Inquiry.js";
 import Space from "../models/Space.js";
 import Notification from "../models/Notification.js";
 
-// Create Inquiry
+/* =========================================================
+   CREATE INQUIRY
+========================================================= */
+
 export const createInquiry = async (req, res) => {
   try {
-    const { space, message } = req.body;
+    const {
+      space,
+      spaceType,
+      seats,
+      firstName,
+      lastName,
+      email,
+      mobile,
+      message,
+    } = req.body;
 
-    if (!space || !message) {
+    /* ---------------------------------------------
+       REQUIRED FIELDS
+    --------------------------------------------- */
+
+    if (
+      !space ||
+      !spaceType ||
+      seats === undefined ||
+      !firstName ||
+      !lastName ||
+      !email ||
+      !mobile
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Workspace and message are required",
+        message:
+          "Workspace, space type, seats, name, email and mobile are required",
       });
     }
+
+    /* ---------------------------------------------
+       SPACE
+    --------------------------------------------- */
 
     const workspace = await Space.findById(space);
 
@@ -23,31 +53,89 @@ export const createInquiry = async (req, res) => {
       });
     }
 
+    /* ---------------------------------------------
+       SEATS
+    --------------------------------------------- */
+
+    const seatCount = Number(seats);
+
+    if (!Number.isInteger(seatCount) || seatCount < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Seats must be at least 1",
+      });
+    }
+
+    if (seatCount > Number(workspace.capacity)) {
+      return res.status(400).json({
+        success: false,
+        message: `Maximum capacity is ${workspace.capacity}`,
+      });
+    }
+
+    /* ---------------------------------------------
+       EMAIL
+    --------------------------------------------- */
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(normalizedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid email address",
+      });
+    }
+
+    /* ---------------------------------------------
+       CREATE INQUIRY
+    --------------------------------------------- */
+
     const inquiry = await Inquiry.create({
       user: req.user._id,
-      space,
-      message,
+      space: workspace._id,
+      spaceType: spaceType.trim(),
+      seats: seatCount,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: normalizedEmail,
+      mobile: mobile.trim(),
+      message: typeof message === "string" ? message.trim() : "",
     });
 
-    // Notify workspace owner
-    await Notification.create({
-      user: workspace.owner,
-      title: "New Workspace Inquiry",
-      message: `${req.user.name} sent an inquiry about ${workspace.name}`,
-      type: "inquiry",
-    });
+    /* ---------------------------------------------
+       OWNER NOTIFICATION
+    --------------------------------------------- */
+
+    try {
+      await Notification.create({
+        user: workspace.owner,
+        title: "New Workspace Inquiry",
+        message: `${firstName.trim()} ${lastName.trim()} sent an inquiry about ${workspace.name}.`,
+        type: "inquiry",
+      });
+    } catch (notificationError) {
+      console.error("Inquiry notification error:", notificationError);
+    }
+
+    /* ---------------------------------------------
+       POPULATE
+    --------------------------------------------- */
 
     const populatedInquiry = await Inquiry.findById(inquiry._id)
-      .populate("user", "name email profilePicture")
-      .populate("space", "name location image");
+      .populate("user", "name email phone profilePicture")
+      .populate("space", "name location image workspaceType capacity price");
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Inquiry sent successfully",
       inquiry: populatedInquiry,
     });
   } catch (error) {
-    res.status(500).json({
+    console.error("Create inquiry error:", error);
+
+    return res.status(500).json({
       success: false,
       message: "Failed to send inquiry",
       error: error.message,
