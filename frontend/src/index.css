@@ -6,9 +6,13 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Smart Co-Working Space Palette */
+  /* =========================================================
+     Smart Co-Working Space Palette
+     ========================================================= */
+
   --primary: #042630;
   --primary-dark: #041421;
+
   --secondary: #4a7272;
   --accent: #86b9b2;
 
@@ -18,14 +22,16 @@
 
   --text: #041421;
   --muted: #5f7074;
-
   --border: #d0d6d6;
 
   --navy: #042630;
   --teal: #4a7272;
   --aqua: #86b9b2;
 
-  /* shadcn semantic tokens */
+  /* =========================================================
+     shadcn Semantic Tokens
+     ========================================================= */
+
   --foreground: #041421;
 
   --card: #ffffff;
@@ -35,7 +41,6 @@
   --popover-foreground: #041421;
 
   --primary-foreground: #ffffff;
-
   --secondary-foreground: #ffffff;
 
   --muted-foreground: #5f7074;
@@ -45,10 +50,12 @@
   --destructive: #dc2626;
 
   --input: #d0d6d6;
-
   --ring: #4a7272;
 
-  /* Charts */
+  /* =========================================================
+     Charts
+     ========================================================= */
+
   --chart-1: #042630;
   --chart-2: #4a7272;
   --chart-3: #86b9b2;
@@ -57,7 +64,10 @@
 
   --radius: 0.75rem;
 
-  /* Sidebar */
+  /* =========================================================
+     Sidebar
+     ========================================================= */
+
   --sidebar: #042630;
   --sidebar-foreground: #ffffff;
 
@@ -144,8 +154,13 @@
   --card: #042630;
   --card-foreground: #f5f8f8;
 
+  /*
+    IMPORTANT:
+    Popover background is dark navy.
+    Popover foreground is #041421 as requested.
+  */
   --popover: #042630;
-  --popover-foreground: #f5f8f8;
+  --popover-foreground: #041421;
 
   --primary: #86b9b2;
   --primary-foreground: #041421;
@@ -163,6 +178,7 @@
 
   --border: #31575b;
   --input: #31575b;
+
   --ring: #86b9b2;
 
   --chart-1: #86b9b2;
@@ -200,8 +216,10 @@
 
   body {
     @apply bg-background text-foreground;
+
     margin: 0;
     min-width: 320px;
+
     font-family:
       "Geist Variable",
       Inter,
@@ -229,7 +247,7 @@
     max-width: 100%;
   }
 
-  ::selection {
+  *::selection {
     background: var(--accent);
     color: var(--primary);
   }

@@ -1,13 +1,29 @@
 import { Outlet } from "react-router-dom";
+import { useAuth } from "../../context/authContext";
+
+import OwnerSidebar from "./OwnerSidebar";
 import DashboardSidebar from "./DashboardSidebar";
 
 const DashboardShell = () => {
-  return (
-    <div className="min-h-[calc(100vh-68px)] bg-[var(--background)]">
-      <DashboardSidebar />
+  const { user } = useAuth();
 
-      <main className="min-w-0 lg:ml-[248px]">
-        <div className="container-width px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
+  const isOwner = user?.role === "owner";
+
+  return (
+    <div className="min-h-screen bg-[var(--background)]">
+      {/* Sidebar */}
+      {isOwner ? <OwnerSidebar /> : <DashboardSidebar />}
+
+      {/* Dashboard Content */}
+      <main
+        className="
+          min-h-screen
+          w-full
+          min-w-0
+          lg:pl-[248px]
+        "
+      >
+        <div className="w-full min-w-0 px-4 py-6 sm:px-5 lg:px-6">
           <Outlet />
         </div>
       </main>

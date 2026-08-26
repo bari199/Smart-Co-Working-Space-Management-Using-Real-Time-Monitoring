@@ -117,11 +117,15 @@ const App = () => {
               OWNER PROTECTED ROUTES
           ====================================================== */}
 
+          {/* =====================================================
+    OWNER PROTECTED ROUTES
+====================================================== */}
+
           <Route element={<ProtectedRoute allowedRoles={["owner"]} />}>
             {/* =================================================
-                OWNER DASHBOARD SHELL
-                Protected + Sidebar
-            ================================================== */}
+      OWNER DASHBOARD SHELL
+      Protected + Sidebar
+  ================================================== */}
 
             <Route element={<DashboardShell />}>
               {/* Owner Dashboard */}
@@ -129,6 +133,9 @@ const App = () => {
 
               {/* Owner Spaces */}
               <Route path="/owner/spaces" element={<MySpaces />} />
+
+              {/* Owner Space Details */}
+              <Route path="/owner/spaces/:id" element={<SpaceDetails />} />
 
               {/* Owner Bookings */}
               <Route path="/owner/bookings" element={<OwnerBookings />} />
@@ -138,9 +145,10 @@ const App = () => {
 
               {/* Owner Notifications */}
               <Route path="/owner/notifications" element={<Notifications />} />
-
-              {/* Owner Profile */}
-              {/* Add later if needed */}
+           
+           
+           
+           
             </Route>
           </Route>
         </Route>

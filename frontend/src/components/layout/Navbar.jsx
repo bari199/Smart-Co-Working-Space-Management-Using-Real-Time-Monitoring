@@ -18,6 +18,7 @@ import { getNotifications } from "../../pages/services/notificationService";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import {
@@ -43,9 +44,9 @@ const Navbar = () => {
 
   const { user, isAuthenticated, logout } = useAuth();
 
-  // -----------------------------------------------------
-  // NAVIGATION
-  // -----------------------------------------------------
+  /* =========================================================
+     NAVIGATION
+     ========================================================= */
 
   const links = [
     {
@@ -62,19 +63,20 @@ const Navbar = () => {
     },
   ];
 
-  // -----------------------------------------------------
-  // CLOSE MOBILE MENU
-  // -----------------------------------------------------
+  /* =========================================================
+     CLOSE MOBILE MENU
+     ========================================================= */
 
   const closeMenu = () => {
     setMobileOpen(false);
   };
 
-  // -----------------------------------------------------
-  // ROLE
-  // -----------------------------------------------------
+  /* =========================================================
+     ROLE
+     ========================================================= */
 
   const userRole = user?.role?.toLowerCase();
+
   const isOwner = userRole === "owner";
 
   const dashboardPath = isOwner ? "/owner" : "/dashboard";
@@ -85,16 +87,16 @@ const Navbar = () => {
 
   const profilePath = isOwner ? "/owner/profile" : "/dashboard/profile";
 
-  // -----------------------------------------------------
-  // DISPLAY NAME
-  // -----------------------------------------------------
+  /* =========================================================
+     DISPLAY NAME
+     ========================================================= */
 
   const displayName =
     user?.name || user?.fullName || user?.username || "Account";
 
-  // -----------------------------------------------------
-  // INITIALS
-  // -----------------------------------------------------
+  /* =========================================================
+     INITIALS
+     ========================================================= */
 
   const initials = displayName
     .split(" ")
@@ -103,9 +105,9 @@ const Navbar = () => {
     .map((part) => part[0]?.toUpperCase())
     .join("");
 
-  // -----------------------------------------------------
-  // NOTIFICATIONS
-  // -----------------------------------------------------
+  /* =========================================================
+     NOTIFICATIONS
+     ========================================================= */
 
   const loadNotifications = async () => {
     if (!isAuthenticated || !user) {
@@ -131,9 +133,9 @@ const Navbar = () => {
     }
   };
 
-  // -----------------------------------------------------
-  // LOAD + AUTO REFRESH
-  // -----------------------------------------------------
+  /* =========================================================
+     LOAD + AUTO REFRESH
+     ========================================================= */
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -163,9 +165,9 @@ const Navbar = () => {
     };
   }, [isAuthenticated, user?._id, user?.id, user?.role]);
 
-  // -----------------------------------------------------
-  // UNREAD COUNT
-  // -----------------------------------------------------
+  /* =========================================================
+     UNREAD COUNT
+     ========================================================= */
 
   const unreadCount = notifications.filter(
     (notification) =>
@@ -176,9 +178,9 @@ const Navbar = () => {
 
   const notificationCount = unreadCount > 99 ? "99+" : unreadCount;
 
-  // -----------------------------------------------------
-  // NOTIFICATION ICON
-  // -----------------------------------------------------
+  /* =========================================================
+     NOTIFICATION ICON
+     ========================================================= */
 
   const getNotificationIcon = (type) => {
     const iconClass = "h-[16px] w-[16px] text-[var(--primary)]";
@@ -198,9 +200,9 @@ const Navbar = () => {
     }
   };
 
-  // -----------------------------------------------------
-  // LOGOUT
-  // -----------------------------------------------------
+  /* =========================================================
+     LOGOUT
+     ========================================================= */
 
   const handleLogout = async () => {
     closeMenu();
@@ -211,32 +213,34 @@ const Navbar = () => {
     await logout();
   };
 
-  // -----------------------------------------------------
-  // ACCOUNT NAVIGATION
-  // -----------------------------------------------------
+  /* =========================================================
+     ACCOUNT NAVIGATION
+     ========================================================= */
 
   const handleAccountNavigation = () => {
     setAccountOpen(false);
   };
 
-  // -----------------------------------------------------
-  // RENDER
-  // -----------------------------------------------------
+  /* =========================================================
+     RENDER
+     ========================================================= */
 
   return (
     <header
       className="
-        sticky top-0 z-50
+        sticky
+        top-0
+        z-50
         w-full
-        border-b border-[var(--border)]
-        bg-white/95
-        backdrop-blur-xl
-        dark:bg-[var(--surface)]/95
+        border-b
+        border-[rgba(255,255,255,0.12)]
+        bg-[var(--popover-foreground)]
+        shadow-sm
       "
     >
-      {/* =================================================
+      {/* =====================================================
           NAVBAR
-      ================================================= */}
+          ===================================================== */}
 
       <div className="container-width">
         <div
@@ -249,7 +253,7 @@ const Navbar = () => {
         >
           {/* =================================================
               LOGO
-          ================================================= */}
+              ================================================= */}
 
           <Link
             to="/"
@@ -269,12 +273,12 @@ const Navbar = () => {
                 h-8
                 items-center
                 rounded-md
-                bg-[var(--primary)]
+                bg-[var(--accent)]
                 px-2.5
                 text-sm
                 font-black
                 tracking-tight
-                text-white
+                text-[var(--popover-foreground)]
                 shadow-sm
                 transition
                 group-hover:opacity-90
@@ -289,7 +293,7 @@ const Navbar = () => {
                 text-sm
                 font-semibold
                 tracking-tight
-                text-[var(--text)]
+                text-white
                 sm:block
               "
             >
@@ -299,7 +303,7 @@ const Navbar = () => {
 
           {/* =================================================
               DESKTOP NAVIGATION
-          ================================================= */}
+              ================================================= */}
 
           <nav
             className="
@@ -316,22 +320,21 @@ const Navbar = () => {
               <NavLink
                 key={link.label}
                 to={link.to}
-                className={({ isActive }) =>
-                  `
-                    rounded-md
-                    px-3
-                    py-1.5
-                    text-[13px]
-                    font-medium
-                    transition-colors
-                    duration-200
-                    ${
-                      isActive
-                        ? "text-[var(--primary)]"
-                        : "text-[var(--text)] hover:bg-[var(--background)] hover:text-[var(--primary)]"
-                    }
-                  `
-                }
+                className={({ isActive }) => `
+                  rounded-md
+                  px-3
+                  py-1.5
+                  text-[13px]
+                  font-medium
+                  transition-colors
+                  duration-200
+
+                  ${
+                    isActive
+                      ? "bg-white/10 text-[var(--accent)]"
+                      : "text-white/80 hover:bg-white/10 hover:text-white"
+                  }
+                `}
               >
                 {link.label}
               </NavLink>
@@ -340,7 +343,7 @@ const Navbar = () => {
 
           {/* =================================================
               RIGHT ACTIONS
-          ================================================= */}
+              ================================================= */}
 
           <div
             className="
@@ -353,13 +356,13 @@ const Navbar = () => {
           >
             {/* =================================================
                 AUTHENTICATED
-            ================================================= */}
+                ================================================= */}
 
             {isAuthenticated ? (
               <>
-                {/* =================================================
+                {/* =============================================
                     NOTIFICATIONS
-                ================================================= */}
+                    ============================================= */}
 
                 <Popover
                   open={notificationOpen}
@@ -375,12 +378,12 @@ const Navbar = () => {
                       items-center
                       justify-center
                       rounded-md
-                      text-[var(--text)]
+                      text-white
                       outline-none
                       transition-colors
-                      hover:bg-[var(--background)]
+                      hover:bg-white/10
                       focus-visible:ring-2
-                      focus-visible:ring-[var(--primary)]
+                      focus-visible:ring-[var(--accent)]
                     "
                     aria-label="Notifications"
                   >
@@ -426,8 +429,9 @@ const Navbar = () => {
                       rounded-lg
                       border
                       border-[var(--border)]
-                      bg-[var(--surface)]
+                      bg-[var(--popover)]
                       p-0
+                      text-[var(--popover-foreground)]
                       shadow-xl
                     "
                   >
@@ -449,7 +453,7 @@ const Navbar = () => {
                           className="
                             text-sm
                             font-semibold
-                            text-[var(--text)]
+                            text-[var(--popover-foreground)]
                           "
                         >
                           Notifications
@@ -505,7 +509,7 @@ const Navbar = () => {
                               mt-2
                               text-sm
                               font-medium
-                              text-[var(--text)]
+                              text-[var(--popover-foreground)]
                             "
                           >
                             No notifications
@@ -567,7 +571,7 @@ const Navbar = () => {
                                     className="
                                         text-[13px]
                                         font-semibold
-                                        text-[var(--text)]
+                                        text-[var(--popover-foreground)]
                                       "
                                   >
                                     {notification?.title || "Notification"}
@@ -630,7 +634,7 @@ const Navbar = () => {
                           font-semibold
                           text-white
                           transition
-                          hover:opacity-90
+                          hover:bg-[var(--primary-dark)]
                         "
                       >
                         View All Notifications
@@ -639,9 +643,9 @@ const Navbar = () => {
                   </PopoverContent>
                 </Popover>
 
-                {/* =================================================
+                {/* =============================================
                     ACCOUNT
-                ================================================= */}
+                    ============================================= */}
 
                 <Popover open={accountOpen} onOpenChange={setAccountOpen}>
                   <PopoverTrigger
@@ -656,7 +660,7 @@ const Navbar = () => {
                       pr-1.5
                       outline-none
                       transition-colors
-                      hover:bg-[var(--background)]
+                      hover:bg-white/10
                     "
                   >
                     <Avatar
@@ -664,17 +668,17 @@ const Navbar = () => {
                         h-8
                         w-8
                         border
-                        border-[var(--border)]
+                        border-white/20
                       "
                     >
                       <AvatarImage src={user?.avatar} alt={displayName} />
 
                       <AvatarFallback
                         className="
-                          bg-[var(--primary)]
+                          bg-[var(--accent)]
                           text-[10px]
                           font-bold
-                          text-white
+                          text-[var(--popover-foreground)]
                         "
                       >
                         {initials || <UserRound size={14} />}
@@ -697,7 +701,7 @@ const Navbar = () => {
                           text-xs
                           font-semibold
                           leading-tight
-                          text-[var(--text)]
+                          text-white
                         "
                       >
                         {displayName}
@@ -707,7 +711,7 @@ const Navbar = () => {
                         className="
                           text-[9px]
                           capitalize
-                          text-[var(--muted)]
+                          text-white/60
                         "
                       >
                         {userRole || "Account"}
@@ -718,7 +722,7 @@ const Navbar = () => {
                       size={13}
                       className="
                         hidden
-                        text-[var(--muted)]
+                        text-white/60
                         transition-transform
                         group-data-[state=open]:rotate-180
                         sm:block
@@ -734,13 +738,19 @@ const Navbar = () => {
                       rounded-lg
                       border
                       border-[var(--border)]
-                      bg-[var(--surface)]
+                      bg-[var(--popover)]
                       p-1
+                      text-[var(--popover-foreground)]
                       shadow-xl
                     "
                   >
                     <div className="px-2 py-1.5">
-                      <p className="text-[10px] text-[var(--muted)]">
+                      <p
+                        className="
+                          text-[10px]
+                          text-[var(--muted)]
+                        "
+                      >
                         Signed in as
                       </p>
 
@@ -749,14 +759,20 @@ const Navbar = () => {
                           truncate
                           text-xs
                           font-semibold
-                          text-[var(--text)]
+                          text-[var(--popover-foreground)]
                         "
                       >
                         {displayName}
                       </p>
                     </div>
 
-                    <div className="my-0.5 h-px bg-[var(--border)]" />
+                    <div
+                      className="
+                        my-0.5
+                        h-px
+                        bg-[var(--border)]
+                      "
+                    />
 
                     <Link
                       to={dashboardPath}
@@ -770,7 +786,7 @@ const Navbar = () => {
                         py-1.5
                         text-xs
                         font-medium
-                        text-[var(--text)]
+                        text-[var(--popover-foreground)]
                         transition
                         hover:bg-[var(--background)]
                       "
@@ -794,7 +810,7 @@ const Navbar = () => {
                         py-1.5
                         text-xs
                         font-medium
-                        text-[var(--text)]
+                        text-[var(--popover-foreground)]
                         transition
                         hover:bg-[var(--background)]
                       "
@@ -803,7 +819,13 @@ const Navbar = () => {
                       Profile
                     </Link>
 
-                    <div className="my-0.5 h-px bg-[var(--border)]" />
+                    <div
+                      className="
+                        my-0.5
+                        h-px
+                        bg-[var(--border)]
+                      "
+                    />
 
                     <button
                       type="button"
@@ -832,7 +854,9 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                {/* LOGIN */}
+                {/* =============================================
+                    LOGIN
+                    ============================================= */}
 
                 <Button
                   asChild
@@ -843,27 +867,30 @@ const Navbar = () => {
                     px-3
                     text-xs
                     font-semibold
-                    text-[var(--text)]
-                    hover:bg-[var(--background)]
+                    text-white
+                    hover:bg-white/10
+                    hover:text-white
                   "
                 >
                   <Link to="/login">Login</Link>
                 </Button>
 
-                {/* REGISTER */}
+                {/* =============================================
+                    REGISTER
+                    ============================================= */}
 
                 <Button
                   asChild
                   className="
                     h-8
                     rounded-md
-                    bg-[var(--primary)]
+                    bg-[var(--accent)]
                     px-3.5
                     text-xs
                     font-semibold
-                    text-white
+                    text-[var(--popover-foreground)]
                     shadow-sm
-                    hover:bg-[var(--primary-dark)]
+                    hover:bg-[var(--aqua)]
                   "
                 >
                   <Link to="/register">Get Started</Link>
@@ -873,7 +900,7 @@ const Navbar = () => {
 
             {/* =================================================
                 MOBILE MENU
-            ================================================= */}
+                ================================================= */}
 
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
@@ -885,8 +912,9 @@ const Navbar = () => {
                     h-8
                     w-8
                     rounded-md
-                    text-[var(--text)]
-                    hover:bg-[var(--background)]
+                    text-white
+                    hover:bg-white/10
+                    hover:text-white
                     md:hidden
                   "
                   aria-label="Toggle navigation"
@@ -901,9 +929,9 @@ const Navbar = () => {
                   w-[280px]
                   border-l
                   border-[var(--border)]
-                  bg-white
+                  bg-[var(--popover-foreground)]
                   p-0
-                  dark:bg-[var(--surface)]
+                  text-white
                   sm:w-[320px]
                 "
               >
@@ -912,7 +940,7 @@ const Navbar = () => {
                 <SheetHeader
                   className="
                     border-b
-                    border-[var(--border)]
+                    border-white/10
                     px-4
                     py-3
                     text-left
@@ -923,7 +951,7 @@ const Navbar = () => {
                       text-sm
                       font-black
                       tracking-tight
-                      text-[var(--primary)]
+                      text-[var(--accent)]
                     "
                   >
                     Smart Workspace
@@ -932,7 +960,15 @@ const Navbar = () => {
 
                 {/* MOBILE LINKS */}
 
-                <div className="flex flex-col gap-0.5 px-2.5 py-2.5">
+                <div
+                  className="
+                    flex
+                    flex-col
+                    gap-0.5
+                    px-2.5
+                    py-2.5
+                  "
+                >
                   {links.map((link) => (
                     <SheetClose asChild key={link.label}>
                       <NavLink
@@ -943,9 +979,10 @@ const Navbar = () => {
                           py-2
                           text-xs
                           font-medium
-                          text-[var(--text)]
+                          text-white/80
                           transition
-                          hover:bg-[var(--background)]
+                          hover:bg-white/10
+                          hover:text-white
                         "
                       >
                         {link.label}
@@ -958,9 +995,8 @@ const Navbar = () => {
 
                 <div
                   className="
-                    mt-0
                     border-t
-                    border-[var(--border)]
+                    border-white/10
                     px-2.5
                     pt-2.5
                   "
@@ -976,7 +1012,7 @@ const Navbar = () => {
                           gap-2.5
                           rounded-md
                           border
-                          border-[var(--border)]
+                          border-white/10
                           px-2.5
                           py-2
                         "
@@ -986,17 +1022,17 @@ const Navbar = () => {
                             h-8
                             w-8
                             border
-                            border-[var(--border)]
+                            border-white/20
                           "
                         >
                           <AvatarImage src={user?.avatar} alt={displayName} />
 
                           <AvatarFallback
                             className="
-                              bg-[var(--primary)]
+                              bg-[var(--accent)]
                               text-[10px]
                               font-semibold
-                              text-white
+                              text-[var(--popover-foreground)]
                             "
                           >
                             {initials || <UserRound size={14} />}
@@ -1010,7 +1046,7 @@ const Navbar = () => {
                               truncate
                               text-xs
                               font-semibold
-                              text-[var(--text)]
+                              text-white
                             "
                           >
                             {displayName}
@@ -1020,7 +1056,7 @@ const Navbar = () => {
                             className="
                               text-[9px]
                               capitalize
-                              text-[var(--muted)]
+                              text-white/60
                             "
                           >
                             {userRole || "Account"}
@@ -1039,12 +1075,14 @@ const Navbar = () => {
                             justify-between
                             rounded-md
                             border
-                            border-[var(--border)]
+                            border-white/10
                             px-2.5
                             py-2
                             text-xs
                             font-medium
-                            text-[var(--text)]
+                            text-white
+                            transition
+                            hover:bg-white/10
                           "
                         >
                           <span className="flex items-center gap-2">
@@ -1082,12 +1120,14 @@ const Navbar = () => {
                             gap-2
                             rounded-md
                             border
-                            border-[var(--border)]
+                            border-white/10
                             px-2.5
                             py-2
                             text-xs
                             font-medium
-                            text-[var(--text)]
+                            text-white
+                            transition
+                            hover:bg-white/10
                           "
                         >
                           <LayoutDashboard size={16} />
@@ -1106,12 +1146,14 @@ const Navbar = () => {
                             gap-2
                             rounded-md
                             border
-                            border-[var(--border)]
+                            border-white/10
                             px-2.5
                             py-2
                             text-xs
                             font-medium
-                            text-[var(--text)]
+                            text-white
+                            transition
+                            hover:bg-white/10
                           "
                         >
                           <UserRound size={16} />
@@ -1129,14 +1171,14 @@ const Navbar = () => {
                           h-8
                           w-full
                           rounded-md
-                          border-[var(--border)]
+                          border-white/10
+                          bg-transparent
                           px-2.5
                           text-xs
                           font-medium
-                          text-red-600
-                          hover:bg-red-50
-                          hover:text-red-600
-                          dark:hover:bg-red-950/30
+                          text-red-400
+                          hover:bg-red-950/30
+                          hover:text-red-400
                         "
                       >
                         <LogOut size={16} />
@@ -1145,37 +1187,45 @@ const Navbar = () => {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-1.5">
+                      {/* LOGIN */}
+
                       <SheetClose asChild>
                         <Link
                           to="/login"
                           className="
                             rounded-md
                             border
-                            border-[var(--border)]
-                            px-3
-                            py-2
-                            text-center
-                            text-xs
-                            font-semibold
-                            text-[var(--text)]
-                          "
-                        >
-                          Login
-                        </Link>
-                      </SheetClose>
-
-                      <SheetClose asChild>
-                        <Link
-                          to="/register"
-                          className="
-                            rounded-md
-                            bg-[var(--primary)]
+                            border-white/10
                             px-3
                             py-2
                             text-center
                             text-xs
                             font-semibold
                             text-white
+                            transition
+                            hover:bg-white/10
+                          "
+                        >
+                          Login
+                        </Link>
+                      </SheetClose>
+
+                      {/* REGISTER */}
+
+                      <SheetClose asChild>
+                        <Link
+                          to="/register"
+                          className="
+                            rounded-md
+                            bg-[var(--accent)]
+                            px-3
+                            py-2
+                            text-center
+                            text-xs
+                            font-semibold
+                            text-[var(--popover-foreground)]
+                            transition
+                            hover:bg-[var(--aqua)]
                           "
                         >
                           Get Started

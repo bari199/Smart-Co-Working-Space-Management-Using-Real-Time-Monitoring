@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-
 import Loading from "../../components/common/Loading";
 import { api } from "../services/api";
 
@@ -10,15 +9,19 @@ const OwnerInquiries = () => {
   const [replyingId, setReplyingId] = useState(null);
   const [replyText, setReplyText] = useState("");
 
+  // =====================================================
+  // FETCH INQUIRIES
+  // =====================================================
+
   const fetchInquiries = async () => {
     try {
       setLoading(true);
 
-      // IMPORTANT:
-      // Backend route = /api/inquiries/owner/inquiries
       const data = await api("/inquiries/owner/inquiries");
 
-      setInquiries(data?.inquiries || data?.data || []);
+      setInquiries(
+        data?.inquiries || data?.data?.inquiries || data?.data || [],
+      );
     } catch (error) {
       console.error("Owner inquiries error:", error);
 
@@ -32,9 +35,9 @@ const OwnerInquiries = () => {
     fetchInquiries();
   }, []);
 
-  /* =======================================================
-     REPLY
-  ======================================================= */
+  // =====================================================
+  // REPLY
+  // =====================================================
 
   const handleReply = async (id) => {
     if (!replyText.trim()) {
@@ -59,15 +62,17 @@ const OwnerInquiries = () => {
 
       await fetchInquiries();
     } catch (error) {
+      console.error("Reply error:", error);
+
       toast.error(error?.message || "Failed to send reply");
     } finally {
       setReplyingId(null);
     }
   };
 
-  /* =======================================================
-     CLOSE
-  ======================================================= */
+  // =====================================================
+  // CLOSE
+  // =====================================================
 
   const handleClose = async (id) => {
     try {
@@ -79,186 +84,325 @@ const OwnerInquiries = () => {
 
       await fetchInquiries();
     } catch (error) {
+      console.error("Close inquiry error:", error);
+
       toast.error(error?.message || "Failed to close inquiry");
     }
   };
+
+  // =====================================================
+  // LOADING
+  // =====================================================
 
   if (loading) {
     return <Loading />;
   }
 
-  return (
-    <div className="min-h-screen bg-[var(--background)] px-4 py-8">
-      <div className="mx-auto max-w-6xl">
-        {/* HEADER */}
-        <div className="mb-8">
-          <p className="text-sm font-medium text-[var(--secondary)]">Owner</p>
+  // =====================================================
+  // UI
+  // =====================================================
 
-          <h1 className="mt-1 text-3xl font-bold text-[var(--text)]">
+  return (
+    <div className="min-h-screen bg-[var(--background)] px-3 py-5 sm:px-4">
+      <div className="mx-auto max-w-6xl">
+        {/* =================================================
+            HEADER
+        ================================================= */}
+
+        <div className="mb-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--secondary)]">
+            Owner
+          </p>
+
+          <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-[var(--popover-foreground)] sm:text-3xl">
             Owner Inquiries
           </h1>
 
-          <p className="mt-2 text-[var(--muted)]">
+          <p className="mt-1 text-sm text-[var(--muted)]">
             Questions and workspace requests from your customers.
           </p>
         </div>
 
-        {/* EMPTY */}
+        {/* =================================================
+            EMPTY STATE
+        ================================================= */}
+
         {inquiries.length === 0 ? (
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-10 text-center">
-            <h2 className="text-xl font-semibold text-[var(--text)]">
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-8 text-center">
+            <h2 className="text-lg font-semibold text-[var(--popover-foreground)]">
               No inquiries yet
             </h2>
 
-            <p className="mt-2 text-[var(--muted)]">
+            <p className="mt-1 text-sm text-[var(--muted)]">
               Customer inquiries will appear here.
             </p>
           </div>
         ) : (
-          <div className="space-y-5">
+          /* =================================================
+             INQUIRY LIST
+          ================================================= */
+
+          <div className="space-y-3">
             {inquiries.map((inquiry) => (
               <div
-                key={inquiry._id}
-                className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6"
+                key={inquiry?._id}
+                className="
+                  overflow-hidden
+                  rounded-xl
+                  border
+                  border-[var(--border)]
+                  bg-[var(--surface)]
+                  shadow-sm
+                "
               >
-                {/* TOP */}
-                <div className="flex flex-col justify-between gap-4 md:flex-row">
-                  <div>
-                    <h2 className="text-xl font-semibold text-[var(--text)]">
-                      {inquiry.space?.name || "Workspace Inquiry"}
+                {/* =================================================
+                    CARD HEADER
+                ================================================= */}
+
+                <div className="flex flex-col justify-between gap-2 border-b border-[var(--border)] px-4 py-3 sm:flex-row sm:items-center">
+                  <div className="min-w-0">
+                    <h2 className="truncate text-base font-semibold text-[var(--popover-foreground)]">
+                      {inquiry?.space?.name || "Workspace Inquiry"}
                     </h2>
 
-                    <p className="mt-1 text-sm text-[var(--muted)]">
-                      {inquiry.space?.location || "Location unavailable"}
+                    <p className="mt-0.5 truncate text-xs text-[var(--muted)]">
+                      {inquiry?.space?.location || "Location unavailable"}
                     </p>
                   </div>
 
-                  <span className="h-fit rounded-full bg-[var(--accent)]/30 px-3 py-1 text-sm font-medium capitalize text-[var(--primary)]">
-                    {inquiry.status || "pending"}
+                  <span
+                    className="
+                      w-fit
+                      rounded-full
+                      bg-[var(--accent)]/20
+                      px-2.5
+                      py-1
+                      text-[10px]
+                      font-semibold
+                      capitalize
+                      text-[var(--primary)]
+                    "
+                  >
+                    {inquiry?.status || "pending"}
                   </span>
                 </div>
 
-                {/* CUSTOMER */}
-                <div className="mt-6 grid gap-4 rounded-xl bg-[var(--accent)]/10 p-5 sm:grid-cols-2 lg:grid-cols-4">
-                  <div>
-                    <p className="text-xs text-[var(--muted)]">First Name</p>
+                {/* =================================================
+                    CARD BODY
+                ================================================= */}
 
-                    <p className="mt-1 font-medium text-[var(--text)]">
-                      {inquiry.firstName || "—"}
-                    </p>
-                  </div>
+                <div className="px-4 py-3">
+                  {/* =================================================
+                      CUSTOMER INFORMATION
+                  ================================================= */}
 
-                  <div>
-                    <p className="text-xs text-[var(--muted)]">Last Name</p>
+                  <div
+                    className="
+                      grid
+                      gap-2
+                      rounded-lg
+                      bg-[var(--accent)]/10
+                      p-3
+                      sm:grid-cols-2
+                      lg:grid-cols-4
+                    "
+                  >
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-[var(--muted)]">
+                        First Name
+                      </p>
 
-                    <p className="mt-1 font-medium text-[var(--text)]">
-                      {inquiry.lastName || "—"}
-                    </p>
-                  </div>
+                      <p className="mt-0.5 truncate text-xs font-medium text-[var(--popover-foreground)]">
+                        {inquiry?.firstName || "—"}
+                      </p>
+                    </div>
 
-                  <div>
-                    <p className="text-xs text-[var(--muted)]">Email</p>
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-[var(--muted)]">
+                        Last Name
+                      </p>
 
-                    <p className="mt-1 break-all font-medium text-[var(--text)]">
-                      {inquiry.email || inquiry.user?.email || "—"}
-                    </p>
-                  </div>
+                      <p className="mt-0.5 truncate text-xs font-medium text-[var(--popover-foreground)]">
+                        {inquiry?.lastName || "—"}
+                      </p>
+                    </div>
 
-                  <div>
-                    <p className="text-xs text-[var(--muted)]">Mobile</p>
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-[var(--muted)]">Email</p>
 
-                    <p className="mt-1 font-medium text-[var(--text)]">
-                      {inquiry.mobile || inquiry.user?.phone || "—"}
-                    </p>
-                  </div>
-                </div>
+                      <p className="mt-0.5 truncate text-xs font-medium text-[var(--popover-foreground)]">
+                        {inquiry?.email || inquiry?.user?.email || "—"}
+                      </p>
+                    </div>
 
-                {/* REQUIREMENT */}
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl border border-[var(--border)] p-4">
-                    <p className="text-xs text-[var(--muted)]">Space Type</p>
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-[var(--muted)]">Mobile</p>
 
-                    <p className="mt-1 font-semibold text-[var(--text)]">
-                      {inquiry.spaceType ||
-                        inquiry.space?.workspaceType ||
-                        "Workspace"}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-[var(--border)] p-4">
-                    <p className="text-xs text-[var(--muted)]">
-                      Number of Seats
-                    </p>
-
-                    <p className="mt-1 font-semibold text-[var(--text)]">
-                      {inquiry.seats || 0}
-                    </p>
-                  </div>
-                </div>
-
-                {/* MESSAGE */}
-                {inquiry.message && (
-                  <div className="mt-5">
-                    <p className="text-sm font-semibold text-[var(--text)]">
-                      Message
-                    </p>
-
-                    <p className="mt-2 rounded-xl border border-[var(--border)] p-4 text-sm leading-6 text-[var(--muted)]">
-                      {inquiry.message}
-                    </p>
-                  </div>
-                )}
-
-                {/* OWNER REPLY */}
-                {inquiry.reply && (
-                  <div className="mt-5 rounded-xl bg-[var(--accent)]/10 p-5">
-                    <p className="text-sm font-semibold text-[var(--primary)]">
-                      Your Reply
-                    </p>
-
-                    <p className="mt-2 text-sm leading-6 text-[var(--text)]">
-                      {inquiry.reply}
-                    </p>
-                  </div>
-                )}
-
-                {/* REPLY FORM */}
-                {inquiry.status !== "closed" && (
-                  <div className="mt-6 border-t border-[var(--border)] pt-5">
-                    <textarea
-                      value={replyingId === inquiry._id ? replyText : ""}
-                      onFocus={() => {
-                        setReplyingId(inquiry._id);
-                      }}
-                      onChange={(e) => {
-                        setReplyingId(inquiry._id);
-                        setReplyText(e.target.value);
-                      }}
-                      rows={3}
-                      placeholder="Write a reply to the customer..."
-                      className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
-                    />
-
-                    <div className="mt-3 flex flex-wrap gap-3">
-                      <button
-                        onClick={() => handleReply(inquiry._id)}
-                        disabled={
-                          replyingId === inquiry._id && !replyText.trim()
-                        }
-                        className="rounded-lg bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        Send Reply
-                      </button>
-
-                      <button
-                        onClick={() => handleClose(inquiry._id)}
-                        className="rounded-lg border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--text)] transition hover:border-[var(--accent)]"
-                      >
-                        Close Inquiry
-                      </button>
+                      <p className="mt-0.5 truncate text-xs font-medium text-[var(--popover-foreground)]">
+                        {inquiry?.mobile || inquiry?.user?.phone || "—"}
+                      </p>
                     </div>
                   </div>
-                )}
+
+                  {/* =================================================
+                      REQUIREMENTS
+                  ================================================= */}
+
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-lg border border-[var(--border)] px-3 py-2.5">
+                      <p className="text-[10px] text-[var(--muted)]">
+                        Space Type
+                      </p>
+
+                      <p className="mt-0.5 text-xs font-semibold text-[var(--popover-foreground)]">
+                        {inquiry?.spaceType ||
+                          inquiry?.space?.workspaceType ||
+                          "Workspace"}
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg border border-[var(--border)] px-3 py-2.5">
+                      <p className="text-[10px] text-[var(--muted)]">
+                        Number of Seats
+                      </p>
+
+                      <p className="mt-0.5 text-xs font-semibold text-[var(--popover-foreground)]">
+                        {inquiry?.seats || 0}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* =================================================
+                      MESSAGE
+                  ================================================= */}
+
+                  {inquiry?.message && (
+                    <div className="mt-3">
+                      <p className="mb-1 text-xs font-semibold text-[var(--popover-foreground)]">
+                        Message
+                      </p>
+
+                      <div className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2.5">
+                        <p className="text-xs leading-5 text-[var(--muted)]">
+                          {inquiry.message}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* =================================================
+                      OWNER REPLY
+                  ================================================= */}
+
+                  {inquiry?.reply && (
+                    <div className="mt-3 rounded-lg bg-[var(--accent)]/10 px-3 py-2.5">
+                      <p className="text-xs font-semibold text-[var(--primary)]">
+                        Your Reply
+                      </p>
+
+                      <p className="mt-1 text-xs leading-5 text-[var(--popover-foreground)]">
+                        {inquiry.reply}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* =================================================
+                      REPLY FORM
+                  ================================================= */}
+
+                  {inquiry?.status !== "closed" && (
+                    <div className="mt-3 border-t border-[var(--border)] pt-3">
+                      <textarea
+                        value={replyingId === inquiry?._id ? replyText : ""}
+                        onFocus={() => {
+                          setReplyingId(inquiry?._id);
+                        }}
+                        onChange={(e) => {
+                          setReplyingId(inquiry?._id);
+                          setReplyText(e.target.value);
+                        }}
+                        rows={2}
+                        placeholder="Write a reply to the customer..."
+                        className="
+                          w-full
+                          resize-none
+                          rounded-lg
+                          border
+                          border-[var(--border)]
+                          bg-[var(--surface)]
+                          px-3
+                          py-2
+                          text-xs
+                          text-[var(--popover-foreground)]
+                          outline-none
+                          placeholder:text-[var(--muted)]
+                          focus:border-[var(--primary)]
+                          focus:ring-1
+                          focus:ring-[var(--primary)]/20
+                        "
+                      />
+
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleReply(inquiry?._id)}
+                          disabled={
+                            replyingId === inquiry?._id && !replyText.trim()
+                          }
+                          className="
+                            rounded-md
+                            bg-[var(--primary)]
+                            px-3.5
+                            py-1.5
+                            text-xs
+                            font-semibold
+                            text-[var(--primary-foreground)]
+                            transition
+                            hover:opacity-90
+                            disabled:cursor-not-allowed
+                            disabled:opacity-50
+                          "
+                        >
+                          {replyingId === inquiry?._id
+                            ? "Sending..."
+                            : "Send Reply"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleClose(inquiry?._id)}
+                          className="
+                            rounded-md
+                            border
+                            border-[var(--border)]
+                            px-3.5
+                            py-1.5
+                            text-xs
+                            font-semibold
+                            text-[var(--popover-foreground)]
+                            transition
+                            hover:border-[var(--accent)]
+                            hover:bg-[var(--background)]
+                          "
+                        >
+                          Close Inquiry
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* =================================================
+                      CLOSED STATUS
+                  ================================================= */}
+
+                  {inquiry?.status === "closed" && (
+                    <div className="mt-3 border-t border-[var(--border)] pt-2">
+                      <p className="text-[10px] font-medium text-[var(--muted)]">
+                        This inquiry has been closed.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>

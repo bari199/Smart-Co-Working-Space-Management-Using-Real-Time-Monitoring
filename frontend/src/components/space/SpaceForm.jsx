@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+
 import {
   Select,
   SelectContent,
@@ -25,6 +27,49 @@ const initialState = {
   image: null,
 };
 
+const workspaceTypes = [
+  {
+    value: "private cabin",
+    label: "Private Cabin",
+  },
+  {
+    value: "shared desk",
+    label: "Shared Desk",
+  },
+  {
+    value: "meeting room",
+    label: "Meeting Room",
+  },
+  {
+    value: "dedicated desk",
+    label: "Dedicated Desk",
+  },
+  {
+    value: "hot desk",
+    label: "Hot Desk",
+  },
+  {
+    value: "conference room",
+    label: "Conference Room",
+  },
+  {
+    value: "virtual office",
+    label: "Virtual Office",
+  },
+  {
+    value: "training room",
+    label: "Training Room",
+  },
+  {
+    value: "creative studio",
+    label: "Creative Studio",
+  },
+  {
+    value: "event space",
+    label: "Event Space",
+  },
+];
+
 const SpaceForm = ({ space = null, onSubmit, onCancel, loading = false }) => {
   const [formData, setFormData] = useState(initialState);
   const [preview, setPreview] = useState("");
@@ -32,20 +77,21 @@ const SpaceForm = ({ space = null, onSubmit, onCancel, loading = false }) => {
   useEffect(() => {
     if (space) {
       setFormData({
-        name: space.name || "",
-        description: space.description || "",
-        location: space.location || "",
-        area: space.area || "",
-        capacity: space.capacity || "",
-        workspaceType: space.workspaceType || "private cabin",
-        price: space.price || "",
-        amenities: Array.isArray(space.amenities)
+        name: space?.name || "",
+        description: space?.description || "",
+        location: space?.location || "",
+        area: space?.area || "",
+        capacity: space?.capacity || "",
+        workspaceType: space?.workspaceType || "private cabin",
+        price: space?.price || "",
+        amenities: Array.isArray(space?.amenities)
           ? space.amenities.join(", ")
-          : space.amenities || "",
-        availability: space.availability || "available",
+          : space?.amenities || "",
+        availability: space?.availability || "available",
         image: null,
       });
-      setPreview(space.image || "");
+
+      setPreview(space?.image || "");
     } else {
       setFormData(initialState);
       setPreview("");
@@ -57,20 +103,35 @@ const SpaceForm = ({ space = null, onSubmit, onCancel, loading = false }) => {
 
     if (name === "image") {
       const file = files?.[0] || null;
-      setFormData((prev) => ({ ...prev, image: file }));
-      if (file) setPreview(URL.createObjectURL(file));
+
+      setFormData((prev) => ({
+        ...prev,
+        image: file,
+      }));
+
+      if (file) {
+        setPreview(URL.createObjectURL(file));
+      }
+
       return;
     }
 
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSelectChange = (name) => (value) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     const data = new FormData();
 
     data.append("name", formData.name);
@@ -87,200 +148,290 @@ const SpaceForm = ({ space = null, onSubmit, onCancel, loading = false }) => {
         .split(",")
         .map((item) => item.trim())
         .filter(Boolean)
-        .forEach((amenity) => data.append("amenities", amenity));
+        .forEach((amenity) => {
+          data.append("amenities", amenity);
+        });
     }
 
-    if (formData.image) data.append("image", formData.image);
+    if (formData.image) {
+      data.append("image", formData.image);
+    }
 
     await onSubmit(data);
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6"
+      className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)]"
     >
-      <div className="mb-6">
-        <p className="text-sm font-medium text-[var(--secondary)]">Owner</p>
-        <h2 className="mt-1 text-2xl font-bold text-[var(--text)]">
+      {/* Header */}
+      <div className="border-b border-[var(--border)] px-4 py-3 sm:px-5">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--primary)]">
+          Owner
+        </p>
+
+        <h2 className="mt-0.5 text-lg font-bold tracking-tight text-[var(--text)] sm:text-xl">
           {space ? "Edit Workspace" : "Add New Workspace"}
         </h2>
-        <p className="mt-1 text-sm text-[var(--muted)]">
+
+        <p className="mt-0.5 text-xs text-[var(--muted)]">
           {space
             ? "Update your workspace information."
             : "Create a workspace listing for customers."}
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="name">Workspace Name</Label>
-          <Input
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            placeholder="e.g. Modern Business Hub"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            required
-            rows={4}
-            placeholder="Describe your workspace..."
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            required
-            placeholder="e.g. Salt Lake, Kolkata"
-          />
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="area">Area (sq ft)</Label>
-            <Input
-              id="area"
-              type="number"
-              name="area"
-              value={formData.area}
-              onChange={handleChange}
-              required
-              min="1"
-              placeholder="500"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="capacity">Capacity</Label>
-            <Input
-              id="capacity"
-              type="number"
-              name="capacity"
-              value={formData.capacity}
-              onChange={handleChange}
-              required
-              min="1"
-              placeholder="20"
-            />
-          </div>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label>Workspace Type</Label>
-            <Select
-              value={formData.workspaceType}
-              onValueChange={handleSelectChange("workspaceType")}
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="px-4 py-4 sm:px-5 sm:py-5">
+        <div className="space-y-4">
+          {/* Workspace Name */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="name"
+              className="text-xs font-semibold text-[var(--text)]"
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select type" />
+              Workspace Name
+            </Label>
+
+            <Input
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              placeholder="e.g. Modern Business Hub"
+              className="h-9 border-[var(--border)] bg-[var(--background)] text-xs shadow-none focus-visible:ring-1 focus-visible:ring-[var(--primary)]"
+            />
+          </div>
+
+          {/* Description */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="description"
+              className="text-xs font-semibold text-[var(--text)]"
+            >
+              Description
+            </Label>
+
+            <Textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              required
+              rows={3}
+              placeholder="Describe your workspace..."
+              className="min-h-[82px] resize-none border-[var(--border)] bg-[var(--background)] text-xs shadow-none focus-visible:ring-1 focus-visible:ring-[var(--primary)]"
+            />
+          </div>
+
+          {/* Location */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="location"
+              className="text-xs font-semibold text-[var(--text)]"
+            >
+              Location
+            </Label>
+
+            <Input
+              id="location"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              required
+              placeholder="e.g. Salt Lake, Kolkata"
+              className="h-9 border-[var(--border)] bg-[var(--background)] text-xs shadow-none focus-visible:ring-1 focus-visible:ring-[var(--primary)]"
+            />
+          </div>
+
+          {/* Area + Capacity */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="area"
+                className="text-xs font-semibold text-[var(--text)]"
+              >
+                Area (sq ft)
+              </Label>
+
+              <Input
+                id="area"
+                type="number"
+                name="area"
+                value={formData.area}
+                onChange={handleChange}
+                required
+                min="1"
+                placeholder="500"
+                className="h-9 border-[var(--border)] bg-[var(--background)] text-xs shadow-none focus-visible:ring-1 focus-visible:ring-[var(--primary)]"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="capacity"
+                className="text-xs font-semibold text-[var(--text)]"
+              >
+                Capacity
+              </Label>
+
+              <Input
+                id="capacity"
+                type="number"
+                name="capacity"
+                value={formData.capacity}
+                onChange={handleChange}
+                required
+                min="1"
+                placeholder="20"
+                className="h-9 border-[var(--border)] bg-[var(--background)] text-xs shadow-none focus-visible:ring-1 focus-visible:ring-[var(--primary)]"
+              />
+            </div>
+          </div>
+
+          {/* Workspace Type + Price */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-[var(--text)]">
+                Workspace Type
+              </Label>
+
+              <Select
+                value={formData.workspaceType}
+                onValueChange={handleSelectChange("workspaceType")}
+              >
+                <SelectTrigger className="h-9 border-[var(--border)] bg-[var(--background)] text-xs shadow-none focus:ring-1 focus:ring-[var(--primary)]">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {workspaceTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="price"
+                className="text-xs font-semibold text-[var(--text)]"
+              >
+                Price / Day (₹)
+              </Label>
+
+              <Input
+                id="price"
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                required
+                min="0"
+                placeholder="1000"
+                className="h-9 border-[var(--border)] bg-[var(--background)] text-xs shadow-none focus-visible:ring-1 focus-visible:ring-[var(--primary)]"
+              />
+            </div>
+          </div>
+
+          {/* Amenities */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="amenities"
+              className="text-xs font-semibold text-[var(--text)]"
+            >
+              Amenities
+            </Label>
+
+            <Input
+              id="amenities"
+              name="amenities"
+              value={formData.amenities}
+              onChange={handleChange}
+              placeholder="WiFi, AC, Parking, Coffee"
+              className="h-9 border-[var(--border)] bg-[var(--background)] text-xs shadow-none focus-visible:ring-1 focus-visible:ring-[var(--primary)]"
+            />
+
+            <p className="text-[10px] text-[var(--muted)]">
+              Separate amenities using commas.
+            </p>
+          </div>
+
+          {/* Availability */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-[var(--text)]">
+              Availability
+            </Label>
+
+            <Select
+              value={formData.availability}
+              onValueChange={handleSelectChange("availability")}
+            >
+              <SelectTrigger className="h-9 border-[var(--border)] bg-[var(--background)] text-xs shadow-none focus:ring-1 focus:ring-[var(--primary)]">
+                <SelectValue placeholder="Select availability" />
               </SelectTrigger>
+
               <SelectContent>
-                <SelectItem value="private cabin">Private Cabin</SelectItem>
-                <SelectItem value="shared desk">Shared Desk</SelectItem>
-                <SelectItem value="meeting room">Meeting Room</SelectItem>
+                <SelectItem value="available">Available</SelectItem>
+
+                <SelectItem value="unavailable">Unavailable</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="price">Price / Day (₹)</Label>
+          {/* Image */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="image"
+              className="text-xs font-semibold text-[var(--text)]"
+            >
+              Workspace Image
+            </Label>
+
             <Input
-              id="price"
-              type="number"
-              name="price"
-              value={formData.price}
+              id="image"
+              type="file"
+              name="image"
+              accept="image/*"
               onChange={handleChange}
-              required
-              min="0"
-              placeholder="1000"
+              className="h-9 cursor-pointer border-[var(--border)] bg-[var(--background)] text-xs shadow-none file:mr-3 file:rounded-md file:border-0 file:bg-[var(--primary)]/10 file:px-2.5 file:py-1 file:text-[10px] file:font-semibold file:text-[var(--primary)]"
             />
+
+            {/* Preview */}
+            <AnimatePresence>
+              {preview && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden rounded-lg border border-[var(--border)]"
+                >
+                  <img
+                    src={preview}
+                    alt="Workspace preview"
+                    className="h-44 w-full object-cover sm:h-52"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="amenities">Amenities</Label>
-          <Input
-            id="amenities"
-            name="amenities"
-            value={formData.amenities}
-            onChange={handleChange}
-            placeholder="WiFi, AC, Parking, Coffee"
-          />
-          <p className="text-xs text-[var(--muted)]">
-            Separate amenities using commas.
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Availability</Label>
-          <Select
-            value={formData.availability}
-            onValueChange={handleSelectChange("availability")}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select availability" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="available">Available</SelectItem>
-              <SelectItem value="unavailable">Unavailable</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="image">Workspace Image</Label>
-          <Input
-            id="image"
-            type="file"
-            name="image"
-            accept="image/*"
-            onChange={handleChange}
-            className="cursor-pointer file:mr-4 file:rounded-md file:border-0 file:bg-[var(--accent)]/30 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[var(--primary)]"
-          />
-
-          <AnimatePresence>
-            {preview && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-                className="mt-4 overflow-hidden rounded-xl border border-[var(--border)]"
-              >
-                <img
-                  src={preview}
-                  alt="Workspace preview"
-                  className="h-56 w-full object-cover"
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <div className="flex flex-col-reverse gap-3 border-t border-[var(--border)] pt-5 sm:flex-row sm:justify-end">
+        {/* Actions */}
+        <div className="mt-5 flex flex-col-reverse gap-2 border-t border-[var(--border)] pt-4 sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={loading}
+            className="h-9 border-[var(--border)] bg-[var(--surface)] px-4 text-xs font-medium text-[var(--text)] shadow-none hover:bg-[var(--background)]"
           >
             Cancel
           </Button>
@@ -288,7 +439,7 @@ const SpaceForm = ({ space = null, onSubmit, onCancel, loading = false }) => {
           <Button
             type="submit"
             disabled={loading}
-            className="bg-[var(--primary)] text-white hover:opacity-90"
+            className="h-9 bg-[var(--primary)] px-4 text-xs font-semibold text-white shadow-sm hover:opacity-90"
           >
             {loading
               ? "Saving..."
