@@ -42,7 +42,18 @@ const spaceSchema = new mongoose.Schema(
 
     workspaceType: {
       type: String,
-      enum: ["private cabin", "shared desk", "meeting room"],
+      enum: [
+        "private cabin",
+        "shared desk",
+        "dedicated desk",
+        "hot desk",
+        "meeting room",
+        "conference room",
+        "training room",
+        "virtual office",
+        "event space",
+        "board room",
+      ],
       required: true,
     },
 
