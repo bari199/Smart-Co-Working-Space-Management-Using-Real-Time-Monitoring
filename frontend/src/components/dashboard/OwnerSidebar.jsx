@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Profiler, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -6,6 +6,7 @@ import {
   CalendarDays,
   MessageSquare,
   Bell,
+  User2Icon,
   ChevronRight,
   PanelLeftClose,
   PanelLeftOpen,
@@ -44,6 +45,11 @@ const OwnerSidebar = () => {
       label: "Notifications",
       to: "/owner/notifications",
       icon: Bell,
+    },
+    {
+      label: "Profile",
+      to: "/owner/profile",
+      icon: User2Icon,
     },
   ];
 

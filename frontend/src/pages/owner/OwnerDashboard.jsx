@@ -6,6 +6,7 @@ import {
   CalendarDays,
   MessageSquare,
   Plus,
+  UserRound,
   ChevronRight,
   LayoutDashboard,
 } from "lucide-react";

@@ -4,13 +4,13 @@ const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, "Name is required"],
       trim: true,
     },
 
     email: {
       type: String,
-      required: true,
+      required: [true, "Email is required"],
       unique: true,
       lowercase: true,
       trim: true,
@@ -18,13 +18,14 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: true,
-      minlength: 6,
+      required: [true, "Password is required"],
+      minlength: [6, "Password must be at least 6 characters"],
     },
 
     phone: {
       type: String,
       trim: true,
+      default: "",
     },
 
     role: {
@@ -36,6 +37,7 @@ const userSchema = new mongoose.Schema(
     location: {
       type: String,
       trim: true,
+      default: "",
     },
 
     profilePicture: {
@@ -43,6 +45,7 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
   },
+
   {
     timestamps: true,
   },

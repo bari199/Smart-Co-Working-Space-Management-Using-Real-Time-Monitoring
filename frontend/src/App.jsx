@@ -12,6 +12,7 @@ import Spaces from "./pages/spaces/spaces";
 import SpaceDetails from "./pages/spaces/SpaceDetails";
 
 // User pages
+import Profile from "./pages/user/Profile";
 import UserDashboard from "./pages/user/UserDashboard";
 import MyBookings from "./pages/user/MyBookings";
 import MyInquiries from "./pages/user/MyInquiries";
@@ -86,12 +87,8 @@ const App = () => {
 
               {/* Profile */}
               {/* Add your Profile component here later */}
-              {/* 
-              <Route
-                path="/dashboard/profile"
-                element={<Profile />}
-              />
-              */}
+
+              <Route path="/dashboard/profile" element={<Profile />} />
             </Route>
 
             {/* =================================================
@@ -143,12 +140,10 @@ const App = () => {
               {/* Owner Inquiries */}
               <Route path="/owner/inquiries" element={<OwnerInquiries />} />
 
+              <Route path="/owner/profile" element={<Profile/>}/>
+
               {/* Owner Notifications */}
               <Route path="/owner/notifications" element={<Notifications />} />
-           
-           
-           
-           
             </Route>
           </Route>
         </Route>

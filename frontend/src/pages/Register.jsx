@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+
 import {
   ArrowRight,
   Eye,
@@ -38,46 +39,140 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  /*
+  ========================================================
+  HANDLE INPUT CHANGE
+  ========================================================
+  */
+
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
+    const { name, value, files, type } = e.target;
 
     setFormData((prev) => ({
       ...prev,
-      [name]: files ? files[0] : value,
+      [name]: type === "file" ? files?.[0] || null : value,
     }));
   };
+
+  /*
+  ========================================================
+  HANDLE REGISTER
+  ========================================================
+  */
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (loading) return;
+
+    /*
+    --------------------------------------------------------
+    Basic frontend validation
+    --------------------------------------------------------
+    */
+
+    if (!formData.name.trim()) {
+      toast.error("Please enter your name");
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      toast.error("Please enter your email");
+      return;
+    }
+
+    if (!formData.password) {
+      toast.error("Please enter your password");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
     try {
       setLoading(true);
 
+      /*
+      ======================================================
+      CREATE FORMDATA
+      ======================================================
+      */
+
       const data = new FormData();
 
-      data.append("name", formData.name);
-      data.append("email", formData.email);
+      data.append("name", formData.name.trim());
+      data.append("email", formData.email.trim());
       data.append("password", formData.password);
-      data.append("phone", formData.phone);
+      data.append("phone", formData.phone.trim());
       data.append("role", formData.role);
-      data.append("location", formData.location);
+      data.append("location", formData.location.trim());
 
-      if (formData.profilePicture) {
+      /*
+      ------------------------------------------------------
+      Optional profile picture
+      ------------------------------------------------------
+      */
+
+      if (formData.profilePicture instanceof File) {
         data.append("profilePicture", formData.profilePicture);
       }
 
+      /*
+      ======================================================
+      DEBUG
+      ======================================================
+      */
+
+      console.log("REGISTER FORMDATA:");
+
+      for (const [key, value] of data.entries()) {
+        if (value instanceof File) {
+          console.log(key, {
+            name: value.name,
+            type: value.type,
+            size: value.size,
+          });
+        } else {
+          console.log(key, value);
+        }
+      }
+
+      /*
+      ======================================================
+      API REQUEST
+      ======================================================
+      */
+
       const response = await registerUser(data);
+
+      console.log("REGISTER RESPONSE:", response);
+
+      /*
+      ======================================================
+      SAVE AUTH
+      ======================================================
+      */
 
       login(response);
 
-      toast.success("Registration successful");
+      toast.success(response?.message || "Registration successful");
 
-      if (response.user.role === "owner") {
+      /*
+      ======================================================
+      REDIRECT BASED ON ROLE
+      ======================================================
+      */
+
+      if (response?.user?.role === "owner") {
         navigate("/owner");
       } else {
         navigate("/dashboard");
       }
     } catch (error) {
+      console.error("REGISTER ERROR:", error);
+
       toast.error(error?.message || "Registration failed");
     } finally {
       setLoading(false);
@@ -88,6 +183,7 @@ const Register = () => {
     <main className="bg-[var(--background)] px-4 py-4 sm:py-5">
       <div className="mx-auto w-full max-w-2xl">
         {/* Header */}
+
         <div className="mb-4 text-center">
           <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--primary)] text-white shadow-md">
             <UserPlus size={20} />
@@ -103,11 +199,14 @@ const Register = () => {
         </div>
 
         {/* Card */}
+
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm sm:p-6">
           <form onSubmit={handleSubmit} className="space-y-3.5">
             {/* Name + Email */}
+
             <div className="grid gap-3.5 md:grid-cols-2">
               {/* Name */}
+
               <div className="space-y-1.5">
                 <Label
                   htmlFor="name"
@@ -129,12 +228,14 @@ const Register = () => {
                     value={formData.name}
                     onChange={handleChange}
                     required
+                    autoComplete="name"
                     className="h-10 rounded-lg border-[var(--border)] bg-[var(--background)] pl-9 text-sm shadow-none focus-visible:border-[var(--primary)] focus-visible:ring-1 focus-visible:ring-[var(--primary)]"
                   />
                 </div>
               </div>
 
               {/* Email */}
+
               <div className="space-y-1.5">
                 <Label
                   htmlFor="email"
@@ -157,6 +258,7 @@ const Register = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    autoComplete="email"
                     className="h-10 rounded-lg border-[var(--border)] bg-[var(--background)] pl-9 text-sm shadow-none focus-visible:border-[var(--primary)] focus-visible:ring-1 focus-visible:ring-[var(--primary)]"
                   />
                 </div>
@@ -164,6 +266,7 @@ const Register = () => {
             </div>
 
             {/* Password */}
+
             <div className="space-y-1.5">
               <Label
                 htmlFor="password"
@@ -187,6 +290,7 @@ const Register = () => {
                   onChange={handleChange}
                   required
                   minLength={6}
+                  autoComplete="new-password"
                   className="h-10 rounded-lg border-[var(--border)] bg-[var(--background)] pl-9 pr-9 text-sm shadow-none focus-visible:border-[var(--primary)] focus-visible:ring-1 focus-visible:ring-[var(--primary)]"
                 />
 
@@ -201,8 +305,10 @@ const Register = () => {
             </div>
 
             {/* Phone + Location */}
+
             <div className="grid gap-3.5 md:grid-cols-2">
               {/* Phone */}
+
               <div className="space-y-1.5">
                 <Label
                   htmlFor="phone"
@@ -223,12 +329,14 @@ const Register = () => {
                     placeholder="+1 234 567 890"
                     value={formData.phone}
                     onChange={handleChange}
+                    autoComplete="tel"
                     className="h-10 rounded-lg border-[var(--border)] bg-[var(--background)] pl-9 text-sm shadow-none focus-visible:border-[var(--primary)] focus-visible:ring-1 focus-visible:ring-[var(--primary)]"
                   />
                 </div>
               </div>
 
               {/* Location */}
+
               <div className="space-y-1.5">
                 <Label
                   htmlFor="location"
@@ -256,6 +364,7 @@ const Register = () => {
             </div>
 
             {/* Role */}
+
             <div className="space-y-1.5">
               <Label
                 htmlFor="role"
@@ -272,11 +381,13 @@ const Register = () => {
                 className="h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 text-sm text-[var(--text)] outline-none transition focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
               >
                 <option value="user">User</option>
+
                 <option value="owner">Workspace Owner</option>
               </select>
             </div>
 
             {/* Profile Picture */}
+
             <div className="space-y-1.5">
               <Label
                 htmlFor="profilePicture"
@@ -312,7 +423,7 @@ const Register = () => {
                   id="profilePicture"
                   type="file"
                   name="profilePicture"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
                   onChange={handleChange}
                   className="hidden"
                 />
@@ -320,6 +431,7 @@ const Register = () => {
             </div>
 
             {/* Submit */}
+
             <Button
               type="submit"
               disabled={loading}
@@ -337,6 +449,7 @@ const Register = () => {
           </form>
 
           {/* Footer */}
+
           <div className="mt-4 border-t border-[var(--border)] pt-4 text-center">
             <p className="text-xs text-[var(--muted)]">
               Already have an account?{" "}

@@ -5,6 +5,7 @@ import {
   getAllSpaces,
   getSpaceById,
   getMySpaces,
+  getSearchOptions,
   updateSpace,
   deleteSpace,
   searchSpaces,
@@ -18,6 +19,13 @@ const router = express.Router();
 
 // Public Routes
 router.get("/", getAllSpaces);
+
+router.get("/search", searchSpaces);
+
+// Public Routes
+router.get("/", getAllSpaces);
+
+router.get("/search-options", getSearchOptions);
 
 router.get("/search", searchSpaces);
 

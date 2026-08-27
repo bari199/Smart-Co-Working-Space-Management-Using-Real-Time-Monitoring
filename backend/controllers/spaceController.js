@@ -421,11 +421,40 @@ const searchSpaces = async (req, res) => {
   }
 };
 
+const getSearchOptions = async (req, res) => {
+  try {
+    const locations = await Space.distinct("location", {
+      availability: "available",
+      location: { $nin: ["", null] },
+    });
+
+    const workspaceTypes = await Space.distinct("workspaceType", {
+      availability: "available",
+      workspaceType: { $nin: ["", null] },
+    });
+
+    return res.status(200).json({
+      success: true,
+      locations: locations.sort((a, b) => a.localeCompare(b)),
+      workspaceTypes: workspaceTypes.sort((a, b) => a.localeCompare(b)),
+    });
+  } catch (error) {
+    console.error("Get search options error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch search options",
+      error: error.message,
+    });
+  }
+};
+
 export {
   createSpace,
   getAllSpaces,
   getSpaceById,
   getMySpaces,
+  getSearchOptions,
   updateSpace,
   deleteSpace,
   searchSpaces,

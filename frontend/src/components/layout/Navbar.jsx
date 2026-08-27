@@ -18,7 +18,6 @@ import { getNotifications } from "../../pages/services/notificationService";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import {
@@ -43,6 +42,14 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const { user, isAuthenticated, logout } = useAuth();
+
+  /* =========================================================
+     API / BACKEND URL
+     ========================================================= */
+
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+
+  const BACKEND_URL = API_URL.replace(/\/api\/?$/, "");
 
   /* =========================================================
      NAVIGATION
@@ -104,6 +111,39 @@ const Navbar = () => {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("");
+
+  /* =========================================================
+     AVATAR / PROFILE IMAGE
+     ========================================================= */
+
+  const rawAvatar =
+    user?.avatar ||
+    user?.avatarUrl ||
+    user?.profileImage ||
+    user?.profileImageUrl ||
+    user?.image ||
+    user?.photoURL ||
+    "";
+
+  const avatarUrl = rawAvatar
+    ? rawAvatar.startsWith("http://") ||
+      rawAvatar.startsWith("https://") ||
+      rawAvatar.startsWith("data:")
+      ? rawAvatar
+      : `${BACKEND_URL}${rawAvatar.startsWith("/") ? "" : "/"}${rawAvatar}`
+    : "";
+
+  /* =========================================================
+     DEBUG AVATAR
+     ========================================================= */
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log("Navbar User:", user);
+      console.log("Navbar Raw Avatar:", rawAvatar);
+      console.log("Navbar Avatar URL:", avatarUrl);
+    }
+  }, [isAuthenticated, user, rawAvatar, avatarUrl]);
 
   /* =========================================================
      NOTIFICATIONS
@@ -206,6 +246,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     closeMenu();
+
     setNotificationOpen(false);
     setAccountOpen(false);
     setNotifications([]);
@@ -220,6 +261,13 @@ const Navbar = () => {
   const handleAccountNavigation = () => {
     setAccountOpen(false);
   };
+
+  /* =========================================================
+     AVATAR FALLBACK
+     ========================================================= */
+
+  const AvatarFallbackContent = () =>
+    initials ? initials : <UserRound size={14} />;
 
   /* =========================================================
      RENDER
@@ -328,7 +376,6 @@ const Navbar = () => {
                   font-medium
                   transition-colors
                   duration-200
-
                   ${
                     isActive
                       ? "bg-white/10 text-[var(--accent)]"
@@ -534,7 +581,7 @@ const Navbar = () => {
 
                           return (
                             <div
-                              key={notification?._id}
+                              key={notification?._id || notification?.id}
                               className={`
                                   border-b
                                   border-[var(--border)]
@@ -671,7 +718,16 @@ const Navbar = () => {
                         border-white/20
                       "
                     >
-                      <AvatarImage src={user?.avatar} alt={displayName} />
+                      <AvatarImage
+                        src={user?.profilePicture || ""}
+                        alt={displayName}
+                        className="h-full w-full object-cover"
+                        onError={(event) => {
+                          console.error("Avatar image failed:", avatarUrl);
+
+                          event.currentTarget.style.display = "none";
+                        }}
+                      />
 
                       <AvatarFallback
                         className="
@@ -681,7 +737,7 @@ const Navbar = () => {
                           text-[var(--popover-foreground)]
                         "
                       >
-                        {initials || <UserRound size={14} />}
+                        <AvatarFallbackContent />
                       </AvatarFallback>
                     </Avatar>
 
@@ -1025,7 +1081,19 @@ const Navbar = () => {
                             border-white/20
                           "
                         >
-                          <AvatarImage src={user?.avatar} alt={displayName} />
+                          <AvatarImage
+                            src={user?.profilePicture || ""}
+                            alt={displayName}
+                            className="h-full w-full object-cover"
+                            onError={(event) => {
+                              console.error(
+                                "Mobile avatar image failed:",
+                                avatarUrl,
+                              );
+
+                              event.currentTarget.style.display = "none";
+                            }}
+                          />
 
                           <AvatarFallback
                             className="
@@ -1035,7 +1103,7 @@ const Navbar = () => {
                               text-[var(--popover-foreground)]
                             "
                           >
-                            {initials || <UserRound size={14} />}
+                            <AvatarFallbackContent />
                           </AvatarFallback>
                         </Avatar>
 

@@ -15,7 +15,19 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 
 const app = express();
 
+/*
+========================================================
+DATABASE
+========================================================
+*/
+
 connectDB();
+
+/*
+========================================================
+CORS
+========================================================
+*/
 
 app.use(
   cors({
@@ -24,11 +36,29 @@ app.use(
   }),
 );
 
+/*
+========================================================
+BODY PARSERS
+========================================================
+*/
+
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  express.urlencoded({
+    extended: true,
+  }),
+);
+
+/*
+========================================================
+HEALTH / ROOT
+========================================================
+*/
 
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
+    success: true,
     message: "Welcome to Smart Co-Working Space API",
   });
 });
@@ -40,22 +70,73 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+/*
+========================================================
+API ROUTES
+========================================================
+*/
+
 app.use("/api/auth", authRoutes);
+
 app.use("/api/spaces", spaceRoutes);
+
 app.use("/api/bookings", bookingRoutes);
+
 app.use("/api/inquiries", inquiryRoutes);
+
 app.use("/api/notifications", notificationRoutes);
+
 app.use("/api/payments", paymentRoutes);
 
-app.use((error, req, res, next) => {
-  console.error("GLOBAL ERROR:", error);
-  console.error("MESSAGE:", error?.message);
+/*
+========================================================
+MULTER / GLOBAL ERROR HANDLER
+========================================================
+*/
 
-  res.status(500).json({
+app.use((error, req, res, next) => {
+  console.error("=================================");
+  console.error("GLOBAL ERROR");
+  console.error(error);
+  console.error("=================================");
+
+  /*
+  Multer errors
+  */
+
+  if (error.name === "MulterError") {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+
+  /*
+  File validation errors
+  */
+
+  if (error.message === "Only image files are allowed") {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+
+  /*
+  Generic error
+  */
+
+  return res.status(500).json({
     success: false,
     message: error?.message || "Internal Server Error",
   });
 });
+
+/*
+========================================================
+SERVER
+========================================================
+*/
 
 const PORT = process.env.PORT || 5000;
 
