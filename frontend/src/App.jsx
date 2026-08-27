@@ -18,7 +18,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Spaces from "./pages/spaces/spaces";
+import Spaces from "./pages/spaces/Spaces";
 import SpaceDetails from "./pages/spaces/SpaceDetails";
 
 // ==============================

@@ -1,4 +1,4 @@
-import SpaceCard from "./spaceCard";
+import SpaceCard from "./SpaceCard";
 
 const SpaceGrid = ({ spaces = [] }) => {
   if (!spaces.length) {
