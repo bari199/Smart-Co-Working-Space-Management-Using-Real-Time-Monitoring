@@ -198,12 +198,24 @@ export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    /*
+    ========================================================
+    VALIDATE EMAIL
+    ========================================================
+    */
+
     if (!email || !email.trim()) {
       return res.status(400).json({
         success: false,
         message: "Email is required",
       });
     }
+
+    /*
+    ========================================================
+    VALIDATE PASSWORD
+    ========================================================
+    */
 
     if (!password) {
       return res.status(400).json({
@@ -212,9 +224,31 @@ export const loginUser = async (req, res) => {
       });
     }
 
+    /*
+    ========================================================
+    NORMALIZE EMAIL
+    ========================================================
+    */
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    /*
+    ========================================================
+    FIND USER
+    password is select:false in User schema,
+    so we explicitly include it with +password
+    ========================================================
+    */
+
     const user = await User.findOne({
-      email: email.trim().toLowerCase(),
-    });
+      email: normalizedEmail,
+    }).select("+password");
+
+    /*
+    ========================================================
+    USER NOT FOUND
+    ========================================================
+    */
 
     if (!user) {
       return res.status(401).json({
@@ -222,6 +256,12 @@ export const loginUser = async (req, res) => {
         message: "Invalid email or password",
       });
     }
+
+    /*
+    ========================================================
+    CHECK PASSWORD
+    ========================================================
+    */
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
@@ -232,7 +272,19 @@ export const loginUser = async (req, res) => {
       });
     }
 
+    /*
+    ========================================================
+    GENERATE JWT TOKEN
+    ========================================================
+    */
+
     const token = generateToken(user._id);
+
+    /*
+    ========================================================
+    LOGIN SUCCESS
+    ========================================================
+    */
 
     return res.status(200).json({
       success: true,
@@ -250,7 +302,6 @@ export const loginUser = async (req, res) => {
     });
   }
 };
-
 /*
 ========================================================
 GET CURRENT USER
@@ -559,4 +610,26 @@ export const changePassword = async (req, res) => {
   }
 };
 
+/*
+========================================================
+LOGOUT USER
+POST /api/auth/logout
+========================================================
+*/
 
+export const logoutUser = async (req, res) => {
+  try {
+    return res.status(200).json({
+      success: true,
+      message: "Logout successful",
+    });
+  } catch (error) {
+    console.error("LOGOUT ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Logout failed",
+      error: error.message,
+    });
+  }
+};

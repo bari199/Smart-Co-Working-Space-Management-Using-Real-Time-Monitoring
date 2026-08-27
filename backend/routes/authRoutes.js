@@ -3,6 +3,7 @@ import express from "express";
 import {
   registerUser,
   loginUser,
+  logoutUser,
   getCurrentUser,
   updateProfile,
   changePassword,
@@ -80,5 +81,14 @@ Body:
 */
 
 router.put("/change-password", authMiddleware, changePassword);
+
+/*
+========================================================
+LOGOUT
+POST /api/auth/logout
+========================================================
+*/
+
+router.post("/logout", authMiddleware, logoutUser);
 
 export default router;

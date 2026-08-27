@@ -12,6 +12,7 @@ import bookingRoutes from "./routes/bookingRoutes.js";
 import inquiryRoutes from "./routes/inquiryRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 
@@ -87,6 +88,8 @@ app.use("/api/inquiries", inquiryRoutes);
 app.use("/api/notifications", notificationRoutes);
 
 app.use("/api/payments", paymentRoutes);
+
+app.use("/api/admin", adminRoutes);
 
 /*
 ========================================================

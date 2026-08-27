@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/authContext";
 
-const ProtectedRoute = ({ allowedRoles }) => {
+const ProtectedRoute = ({ allowedRoles = [] }) => {
   const { isAuthenticated, user } = useAuth();
   const location = useLocation();
 
@@ -10,8 +10,17 @@ const ProtectedRoute = ({ allowedRoles }) => {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Role restriction
-  if (allowedRoles?.length > 0 && !allowedRoles.includes(user?.role)) {
+  // If a specific role is required
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
+    // Send the user to their correct dashboard
+    if (user?.role === "admin") {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+
+    if (user?.role === "owner") {
+      return <Navigate to="/owner" replace />;
+    }
+
     return <Navigate to="/dashboard" replace />;
   }
 

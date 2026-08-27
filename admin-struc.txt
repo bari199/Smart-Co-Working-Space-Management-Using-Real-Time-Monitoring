@@ -1,0 +1,33 @@
+src/
+├── components/
+│   └── admin/
+│       ├── AdminSidebar.jsx
+│       ├── AdminHeader.jsx
+│       ├── StatCard.jsx
+│       ├── StatusBadge.jsx
+│       ├── ConfirmDialog.jsx
+│       └── AdminLoader.jsx
+│
+├── layouts/
+│   └── AdminLayout.jsx
+│
+├── pages/
+│   └── admin/
+│       ├── AdminDashboard.jsx
+│       ├── AdminUsers.jsx
+│       ├── AdminUserDetails.jsx
+│       ├── AdminOwners.jsx
+│       ├── AdminSpaces.jsx
+│       ├── AdminSpaceDetails.jsx
+│       ├── AdminBookings.jsx
+│       ├── AdminBookingDetails.jsx
+│       ├── AdminInquiries.jsx
+│       ├── AdminInquiryDetails.jsx
+│       ├── AdminPayments.jsx
+│       └── AdminPaymentDetails.jsx
+│
+├── services/
+│   └── adminApi.js
+│
+└── routes/
+    └── AdminRoutes.jsx

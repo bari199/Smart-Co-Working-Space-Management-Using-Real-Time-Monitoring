@@ -1,47 +1,79 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
+// ==============================
+// Layouts
+// ==============================
 import MainLayout from "./components/layout/MainLayout";
-import ProtectedRoute from "./components/auth/ProtectedRoute";
 import DashboardShell from "./components/dashboard/DashboardShell";
+import AdminLayout from "./components/layout/AdminLayout";
 
-// Public pages
+// ==============================
+// Authentication / Authorization
+// ==============================
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+
+// ==============================
+// Public Pages
+// ==============================
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Spaces from "./pages/spaces/spaces";
 import SpaceDetails from "./pages/spaces/SpaceDetails";
 
-// User pages
+// ==============================
+// User Pages
+// ==============================
 import Profile from "./pages/user/Profile";
 import UserDashboard from "./pages/user/UserDashboard";
 import MyBookings from "./pages/user/MyBookings";
 import MyInquiries from "./pages/user/MyInquiries";
 import Notifications from "./pages/user/Notifications";
 
-// Owner pages
+// ==============================
+// Owner Pages
+// ==============================
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import MySpaces from "./pages/owner/MySpaces";
 import OwnerBookings from "./pages/owner/OwnerBookings";
 import OwnerInquiries from "./pages/owner/OwnerInquiries";
 
+// ==============================
 // Booking / Inquiry / Payment
+// ==============================
 import Booking from "./pages/booking/Booking";
 import BookingDetails from "./pages/booking/BookingDetails";
 import Inquiry from "./pages/inquirey/Inquiry";
 import Payment from "./pages/payments/Payment";
+
+// ==============================
+// Admin Pages
+// ==============================
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminUserDetails from "./pages/admin/AdminUserDetails";
+import AdminOwners from "./pages/admin/AdminOwners";
+import AdminSpaces from "./pages/admin/AdminSpaces";
+import AdminSpaceDetails from "./pages/admin/AdminSpaceDetails";
+import AdminBookings from "./pages/admin/AdminBookings";
+import AdminBookingDetails from "./pages/admin/AdminBookingDetails";
+import AdminInquiries from "./pages/admin/AdminInquiries";
+import AdminInquiryDetails from "./pages/admin/AdminInquiryDetails";
+import AdminPayments from "./pages/admin/AdminPayments";
+import AdminPaymentDetails from "./pages/admin/AdminPaymentDetails";
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
         {/* =====================================================
-            MAIN LAYOUT
+            MAIN / PUBLIC LAYOUT
         ====================================================== */}
 
         <Route element={<MainLayout />}>
-          {/* =====================================================
-              PUBLIC ROUTES
-          ====================================================== */}
+          {/* =========================
+              Public Routes
+          ========================== */}
 
           <Route path="/" element={<Home />} />
 
@@ -53,98 +85,122 @@ const App = () => {
 
           <Route path="/spaces/:id" element={<SpaceDetails />} />
 
-          {/* =====================================================
+          {/* =========================
               USER PROTECTED ROUTES
-          ====================================================== */}
+          ========================== */}
 
           <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
-            {/* =================================================
-                USER DASHBOARD SHELL
-                Protected + Sidebar
-            ================================================== */}
+            {/* =========================
+                User Dashboard Shell
+            ========================== */}
 
             <Route element={<DashboardShell />}>
-              {/* Dashboard */}
               <Route path="/dashboard" element={<UserDashboard />} />
 
-              {/* My Bookings */}
               <Route path="/dashboard/bookings" element={<MyBookings />} />
 
-              {/* Booking Details */}
               <Route
                 path="/dashboard/bookings/:bookingId"
                 element={<BookingDetails />}
               />
 
-              {/* My Inquiries */}
               <Route path="/dashboard/inquiries" element={<MyInquiries />} />
 
-              {/* Notifications */}
               <Route
                 path="/dashboard/notifications"
                 element={<Notifications />}
               />
 
-              {/* Profile */}
-              {/* Add your Profile component here later */}
-
               <Route path="/dashboard/profile" element={<Profile />} />
             </Route>
 
-            {/* =================================================
-                BOOKING FLOW
-            ================================================== */}
+            {/* =========================
+                User Booking Flow
+            ========================== */}
 
             <Route path="/spaces/:id/book" element={<Booking />} />
 
-            {/* =================================================
-                INQUIRY FLOW
-            ================================================== */}
+            {/* =========================
+                User Inquiry Flow
+            ========================== */}
 
             <Route path="/spaces/:id/inquiry" element={<Inquiry />} />
 
-            {/* =================================================
-                PAYMENT
-            ================================================== */}
+            {/* =========================
+                Payment
+            ========================== */}
 
             <Route path="/payment/:bookingId" element={<Payment />} />
           </Route>
 
-          {/* =====================================================
+          {/* =========================
               OWNER PROTECTED ROUTES
-          ====================================================== */}
-
-          {/* =====================================================
-    OWNER PROTECTED ROUTES
-====================================================== */}
+          ========================== */}
 
           <Route element={<ProtectedRoute allowedRoles={["owner"]} />}>
-            {/* =================================================
-      OWNER DASHBOARD SHELL
-      Protected + Sidebar
-  ================================================== */}
+            {/* =========================
+                Owner Dashboard Shell
+            ========================== */}
 
             <Route element={<DashboardShell />}>
               {/* Owner Dashboard */}
+
               <Route path="/owner" element={<OwnerDashboard />} />
 
               {/* Owner Spaces */}
+
               <Route path="/owner/spaces" element={<MySpaces />} />
 
               {/* Owner Space Details */}
+
               <Route path="/owner/spaces/:id" element={<SpaceDetails />} />
 
               {/* Owner Bookings */}
+
               <Route path="/owner/bookings" element={<OwnerBookings />} />
 
               {/* Owner Inquiries */}
+
               <Route path="/owner/inquiries" element={<OwnerInquiries />} />
 
-              <Route path="/owner/profile" element={<Profile/>}/>
+              {/* Owner Profile */}
+
+              <Route path="/owner/profile" element={<Profile />} />
 
               {/* Owner Notifications */}
+
               <Route path="/owner/notifications" element={<Notifications />} />
             </Route>
+          </Route>
+        </Route>
+
+        {/* =====================================================
+            ADMIN PANEL
+            Separate from MainLayout
+        ====================================================== */}
+        <Route
+          path="/admin"
+          element={<ProtectedRoute allowedRoles={["admin"]} />}
+        >
+          <Route element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="users/:id" element={<AdminUserDetails />} />
+
+            <Route path="owners" element={<AdminOwners />} />
+
+            <Route path="spaces" element={<AdminSpaces />} />
+            <Route path="spaces/:id" element={<AdminSpaceDetails />} />
+
+            <Route path="bookings" element={<AdminBookings />} />
+            <Route path="bookings/:id" element={<AdminBookingDetails />} />
+
+            <Route path="inquiries" element={<AdminInquiries />} />
+            <Route path="inquiries/:id" element={<AdminInquiryDetails />} />
+
+            <Route path="payments" element={<AdminPayments />} />
+            <Route path="payments/:id" element={<AdminPaymentDetails />} />
           </Route>
         </Route>
       </Routes>
