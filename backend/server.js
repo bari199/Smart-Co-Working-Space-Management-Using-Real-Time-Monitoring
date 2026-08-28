@@ -3,8 +3,15 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
+// ==============================
+// Config
+// ==============================
+
 import connectDB from "./config/db.js";
-import cloudinary from "./config/cloudinary.js";
+
+// ==============================
+// Routes
+// ==============================
 
 import authRoutes from "./routes/authRoutes.js";
 import spaceRoutes from "./routes/spaceRoutes.js";
@@ -14,34 +21,64 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
+// ==============================
+// App
+// ==============================
+
 const app = express();
 
-/*
-========================================================
-DATABASE
-========================================================
-*/
+// ==============================
+// Database
+// ==============================
 
 connectDB();
 
-/*
-========================================================
-CORS
-========================================================
-*/
+// ==============================
+// CORS
+// ==============================
+
+const allowedOrigins = [process.env.CLIENT_URL].filter(Boolean);
+
+console.log("Allowed CORS Origins:", allowedOrigins);
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: function (origin, callback) {
+      // Allow requests without an Origin header
+      // Example: Postman, server-to-server requests
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      // Check allowed origins
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.error("CORS BLOCKED:", origin);
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+
     credentials: true,
+
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+
+    allowedHeaders: [
+      "Origin",
+      "X-Requested-With",
+      "Content-Type",
+      "Accept",
+      "Authorization",
+    ],
+
+    optionsSuccessStatus: 204,
   }),
 );
 
-/*
-========================================================
-BODY PARSERS
-========================================================
-*/
+// ==============================
+// Body Parsers
+// ==============================
 
 app.use(express.json());
 
@@ -51,11 +88,9 @@ app.use(
   }),
 );
 
-/*
-========================================================
-HEALTH / ROOT
-========================================================
-*/
+// ==============================
+// Root / Health
+// ==============================
 
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -71,11 +106,9 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-/*
-========================================================
-API ROUTES
-========================================================
-*/
+// ==============================
+// API Routes
+// ==============================
 
 app.use("/api/auth", authRoutes);
 
@@ -91,21 +124,42 @@ app.use("/api/payments", paymentRoutes);
 
 app.use("/api/admin", adminRoutes);
 
-/*
-========================================================
-MULTER / GLOBAL ERROR HANDLER
-========================================================
-*/
+// ==============================
+// 404 Handler
+// ==============================
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
+  });
+});
+
+// ==============================
+// Global Error Handler
+// ==============================
 
 app.use((error, req, res, next) => {
   console.error("=================================");
   console.error("GLOBAL ERROR");
+  console.error("=================================");
   console.error(error);
   console.error("=================================");
 
-  /*
-  Multer errors
-  */
+  // ------------------------------
+  // CORS Error
+  // ------------------------------
+
+  if (error.message === "Not allowed by CORS") {
+    return res.status(403).json({
+      success: false,
+      message: "CORS origin not allowed",
+    });
+  }
+
+  // ------------------------------
+  // Multer Error
+  // ------------------------------
 
   if (error.name === "MulterError") {
     return res.status(400).json({
@@ -114,9 +168,9 @@ app.use((error, req, res, next) => {
     });
   }
 
-  /*
-  File validation errors
-  */
+  // ------------------------------
+  // File Validation Error
+  // ------------------------------
 
   if (error.message === "Only image files are allowed") {
     return res.status(400).json({
@@ -125,24 +179,26 @@ app.use((error, req, res, next) => {
     });
   }
 
-  /*
-  Generic error
-  */
+  // ------------------------------
+  // Generic Error
+  // ------------------------------
 
-  return res.status(500).json({
+  return res.status(error.statusCode || 500).json({
     success: false,
     message: error?.message || "Internal Server Error",
   });
 });
 
-/*
-========================================================
-SERVER
-========================================================
-*/
+// ==============================
+// Server
+// ==============================
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
+  console.log("=================================");
+  console.log("Smart Co-Working Space API");
   console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log("=================================");
 });
