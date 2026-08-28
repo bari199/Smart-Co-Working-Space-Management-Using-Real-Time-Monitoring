@@ -10,7 +10,7 @@ A centralized, role-based web platform that helps individuals, startups, and ent
 
 ## 2. 📖 Project Overview
 
-The Co-Working Space Web Platform is built for **Flexo Spaces** (client: Unified Mentor) to solve a real problem: users struggle to find co-working spaces that match their exact team size, budget, and amenity needs, while owners struggle to manage listings, bookings, and inquiries manually.
+The Co-Working Space Web Platform is built for **SmartWorkspace** to solve a real problem: users struggle to find co-working spaces that match their exact team size, budget, and amenity needs, while owners struggle to manage listings, bookings, and inquiries manually.
 
 This platform brings discovery, comparison, and booking into one workflow — with transparent details on capacity, area, pricing, and amenities, real-time availability, and a smart matching layer that filters spaces to a user's specific requirements.
 
