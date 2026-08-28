@@ -16,7 +16,7 @@ const Footer = () => {
           <div>
             <Link to="/" className="inline-flex">
               <span className="rounded-md bg-white px-2.5 py-1 text-sm font-black tracking-tight text-[var(--primary)]">
-                FLEXO
+                Smart Workspace
               </span>
             </Link>
 
@@ -177,7 +177,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="mt-12 flex flex-col justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/45 sm:flex-row">
-          <p>© 2026 Flexo. All rights reserved.</p>
+          <p>© 2026 Smart Workspace. All rights reserved.</p>
 
           <p>Flexible workspace marketplace</p>
         </div>

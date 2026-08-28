@@ -3,9 +3,9 @@ import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
-    question: "What is Flexo?",
+    question: "What is Smart Workspace?",
     answer:
-      "Flexo is a flexible workspace marketplace where you can discover and book coworking spaces, private offices and meeting rooms.",
+      "Smart Workspace is a flexible workspace marketplace where you can discover and book coworking spaces, private offices and meeting rooms.",
   },
   {
     question: "How do I book a workspace?",

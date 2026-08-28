@@ -32,7 +32,7 @@ const WhyChooseUs = () => {
         <div className="grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--aqua)]">
-              Why Flexo
+              Why Smart Workspace
             </p>
 
             <h2 className="mt-3 text-3xl font-bold leading-tight tracking-[-0.035em] text-white sm:text-4xl">

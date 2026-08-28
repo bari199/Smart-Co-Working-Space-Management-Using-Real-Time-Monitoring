@@ -14,7 +14,7 @@ const testimonials = [
   {
     name: "Arjun Mehta",
     role: "Business Consultant",
-    text: "Flexo gives us the flexibility to work from different cities without dealing with complicated workspace contracts.",
+    text: "Smart Workspace gives us the flexibility to work from different cities without dealing with complicated workspace contracts.",
   },
 ];
 

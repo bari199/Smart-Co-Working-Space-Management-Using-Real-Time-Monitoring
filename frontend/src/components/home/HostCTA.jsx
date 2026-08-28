@@ -24,8 +24,8 @@ const HostCTA = () => {
                 </h2>
 
                 <p className="mt-3 text-sm leading-6 text-white/65">
-                  List your space on Flexo and connect with businesses looking
-                  for flexible workspace.
+                  List your space on Smart Workspace and connect with businesses
+                  looking for flexible workspace.
                 </p>
               </div>
             </div>
